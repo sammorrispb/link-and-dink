@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getServiceClient } from "@/lib/supabase-admin";
 import AdminHeader from "@/components/admin/AdminHeader";
 import IssueEditor from "@/components/admin/IssueEditor";
+import IssueStats from "@/components/admin/IssueStats";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,7 @@ export default async function EditIssuePage({
           </Link>
         </div>
         <IssueEditor issue={issue} />
+        {issue.status !== "draft" && <IssueStats issueId={issue.id} />}
       </main>
     </>
   );

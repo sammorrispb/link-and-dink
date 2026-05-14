@@ -2,6 +2,7 @@ import { marked } from "marked";
 import sanitizeHtml from "sanitize-html";
 import juice from "juice";
 import { emailShell, textFooter } from "./template";
+import { trackClickUrl, trackOpenUrl } from "./links";
 
 /**
  * Markdown is the single source of truth for an issue. `markdownToHtml` is the
@@ -14,6 +15,16 @@ export type IssueContent = {
   subject: string;
   preview_text?: string | null;
   body_markdown: string;
+};
+
+/**
+ * Opt-in tracking for `renderEmail`. Supplied by the send drain; omitted by the
+ * admin preview and test-send so those don't rewrite links or log events.
+ */
+export type TrackingOptions = {
+  issueId: string;
+  /** issue_links rows — `url` is the rendered href, `id` the linkId. */
+  links: { id: string; url: string }[];
 };
 
 const SANITIZE_OPTS: sanitizeHtml.IOptions = {
@@ -44,11 +55,29 @@ export function markdownToText(md: string): string {
 
 /**
  * Render an issue for email: shared content transform, wrapped in the inlined
- * table shell. The result still contains the `{{UNSUBSCRIBE_URL}}` placeholder
- * — the send drain swaps it per-recipient.
+ * table shell. The result still contains the unsubscribe placeholder (and, when
+ * `tracking` is given, the tracking-token placeholder) — the send drain swaps
+ * them per-recipient.
+ *
+ * With `tracking`: known links are rewritten through the click route and an
+ * open pixel is appended. Without it (admin preview, test send): neither.
  */
-export function renderEmail(issue: IssueContent): { html: string; text: string } {
-  const content = markdownToHtml(issue.body_markdown);
+export function renderEmail(
+  issue: IssueContent,
+  tracking?: TrackingOptions,
+): { html: string; text: string } {
+  let content = markdownToHtml(issue.body_markdown);
+
+  if (tracking) {
+    for (const link of tracking.links) {
+      content = content.replaceAll(
+        `href="${link.url}"`,
+        `href="${trackClickUrl(tracking.issueId, link.id)}"`,
+      );
+    }
+    content += `<img src="${trackOpenUrl(tracking.issueId)}" width="1" height="1" alt="" style="display:none" />`;
+  }
+
   const html = juice(
     emailShell({
       subject: issue.subject,
