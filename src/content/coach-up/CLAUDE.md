@@ -95,7 +95,7 @@ tier: coach                    # apprentice | coach | lead-coach | master-track 
 
 ## Cross-linking
 
-`related` and `teaches` hold slug strings in `category/slug` form. Every referenced slug must resolve to a real file — a dangling link is a defect (the future loader will fail the build on one). The `teaches` arrays in the `week-NN.mdx` files are the spine that threads the 12-week roadmap into the rest of the handbook; every framework, system, and key vocabulary term should be `teaches`-referenced by at least one week.
+`related` and `teaches` hold slug strings in **`<directory>/<filename-without-ext>`** form — e.g. `frameworks/the-coach-up-pillars`, `flows/post-event-debrief-flow`, `curriculum/week-05`. Use the directory name (plural: `frameworks`, `systems`, `flows`), not the singular `category` value — the directory path is also what in-body markdown links use. Every referenced slug must resolve to a real file — a dangling link is a defect (the future loader will fail the build on one). The `teaches` arrays in the `week-NN.mdx` files are the spine that threads the 12-week roadmap into the rest of the handbook; every framework, system, and key vocabulary term should be `teaches`-referenced by at least one week.
 
 ## Voice
 
