@@ -23,6 +23,7 @@ const FOOT_COLUMNS = [
     heading: "Connect",
     links: [
       { label: "Newsletter", href: "#newsletter" },
+      { label: "Past issues", href: "/weekly" },
       { label: "Instagram", href: "#" },
       { label: "Facebook · MoCo", href: "#" },
       { label: "hello@linkanddink.com", href: "mailto:hello@linkanddink.com" },
