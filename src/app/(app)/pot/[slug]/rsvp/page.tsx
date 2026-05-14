@@ -33,7 +33,7 @@ export default async function RsvpPage({ params }: PageProps) {
   if (!user) {
     return (
       <MobileShell>
-        <TopBar brand="pot-night" icon="⌃" />
+        <TopBar brand="pot-night" icon="⌃" backHref={`/pot/${slug}`} />
         <main className="no-scrollbar flex-1 overflow-y-auto px-[18px] pb-[100px] pt-4">
           <h1 className="mb-1 text-[26px] font-black leading-tight tracking-[-0.03em]">
             Enter the pot

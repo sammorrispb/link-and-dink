@@ -72,7 +72,7 @@ export default async function ConfirmedPage({ params }: PageProps) {
 
   return (
     <MobileShell>
-      <TopBar brand="pot-night" icon="⌃" />
+      <TopBar brand="pot-night" icon="⌃" backHref={`/pot/${slug}`} />
       <main className="no-scrollbar flex-1 overflow-y-auto px-[18px] pb-[100px] pt-4">
         <Pill variant="solid">✓ You&apos;re in</Pill>
         <h1 className="mt-3 text-[26px] font-black leading-tight tracking-[-0.03em]">
