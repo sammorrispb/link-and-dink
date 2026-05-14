@@ -39,6 +39,60 @@ export interface Database {
         };
         Relationships: [];
       };
+      coach_up_applications: {
+        Row: {
+          id: string;
+          created_at: string;
+          name: string;
+          email: string;
+          phone: string | null;
+          neighborhood: string | null;
+          dupr: string | null;
+          years_played: string | null;
+          where_play: string | null;
+          why: string;
+          hours_per_week: string | null;
+          weekend_availability: string | null;
+          commit_12wk: string | null;
+          honesty: string | null;
+          source: string | null;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          name: string;
+          email: string;
+          phone?: string | null;
+          neighborhood?: string | null;
+          dupr?: string | null;
+          years_played?: string | null;
+          where_play?: string | null;
+          why: string;
+          hours_per_week?: string | null;
+          weekend_availability?: string | null;
+          commit_12wk?: string | null;
+          honesty?: string | null;
+          source?: string | null;
+        };
+        Update: {
+          id?: string;
+          created_at?: string;
+          name?: string;
+          email?: string;
+          phone?: string | null;
+          neighborhood?: string | null;
+          dupr?: string | null;
+          years_played?: string | null;
+          where_play?: string | null;
+          why?: string;
+          hours_per_week?: string | null;
+          weekend_availability?: string | null;
+          commit_12wk?: string | null;
+          honesty?: string | null;
+          source?: string | null;
+        };
+        Relationships: [];
+      };
       players: {
         Row: {
           id: string;
