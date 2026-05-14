@@ -18,7 +18,7 @@ export function ShareLink({
   async function handleShare() {
     const url = `${window.location.origin}/pot/${slug}`;
     const shareData = {
-      title: "Pot Night by Link & Dink",
+      title: "The Pickleball Pot Popup by Link & Dink",
       text: "Pickleball's smallest bracket. Winner takes the pot.",
       url,
     };

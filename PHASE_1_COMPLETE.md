@@ -1,5 +1,11 @@
 # Phase 1 — Complete
 
+> The product is **The Pickleball Pot Popup** ("P3" for short). It was named
+> "Pot Night" during the initial build; user-facing copy and docs were renamed
+> post–Phase 1. Internal identifiers (the `pot-night` Vercel project, the
+> `PotNight` git branch, the `/pot/` route, event slugs) intentionally still use
+> the original codename.
+
 ## What was built
 
 **Scaffold**
@@ -25,7 +31,7 @@
 - All mockup sections, in render order: Hero, Featured event card (Entry/Pot
   tiles + roster preview + CTA), How it works (4 steps), The pot ($80
   winner-take-all bar + callout), Who can play (DUPR + Coach-evaluated paths +
-  inaugural callout), Trust grid (4 tiles), Organizer card, Past Pot Nights
+  inaugural callout), Trust grid (4 tiles), Organizer card, Past P3 Popups
   (real data, with an inaugural-cohort empty state), More upcoming (real data),
   Final CTA + tell-a-friend share.
 - Mobile-first; per-event Open Graph + Twitter metadata; generated 1200×630 OG
@@ -93,7 +99,7 @@ Everything on the prompt's out-of-scope list, plus:
    convention in favor of `proxy`.
 6. **3 "more upcoming" events seeded, not 2.** The mockup's More Upcoming list
    shows 3 rows; matched that for visual fidelity.
-7. **Past Pot Nights copy is data-derived.** The mockup's editorial flourishes
+7. **Past P3 Popups copy is data-derived.** The mockup's editorial flourishes
    ("wins back-to-back", "inaugural champ") aren't derivable from match data, so
    rows render as `{champion} takes the pot` + `{score} final · partnered with
    {partner} · {venue}`. Seed player "DJ" therefore reads "DJ takes the pot"
@@ -108,7 +114,7 @@ Everything on the prompt's out-of-scope list, plus:
     `clamp(32px,6vw,72px)` — "reproduce Screen 1 pixel-fairly" took precedence.
 11. **Built on the `PotNight` branch of the `link-and-dink` repo.** Old Hub
     files were removed on this branch only; `main` is untouched. This branch is
-    the standalone Pot Night codebase — extract to its own repo if/when you want.
+    the standalone P3 codebase — extract to its own repo if/when you want.
 
 ## Infra (done)
 

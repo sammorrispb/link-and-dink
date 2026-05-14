@@ -28,8 +28,8 @@ export function OrganizerCard() {
         </div>
 
         <blockquote className="my-3 border-l-2 border-border-medium pl-3 text-[13px] italic leading-relaxed text-text-muted">
-          &ldquo;Pot Night is for the games I always wanted to play on a Tuesday but couldn&apos;t
-          find. Real bracket, real stakes, real people. No pickup-game limbo.&rdquo;
+          &ldquo;P3 is for the games I always wanted to play on a Tuesday but couldn&apos;t find.
+          Real bracket, real stakes, real people. No pickup-game limbo.&rdquo;
         </blockquote>
 
         <div className="flex justify-between border-y border-border-subtle py-2.5">

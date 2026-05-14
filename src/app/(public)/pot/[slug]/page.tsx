@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
   const data = await loadEvent(slug);
   if (!data) {
-    return { title: "Pot Night — event not found" };
+    return { title: "The Pickleball Pot Popup — event not found" };
   }
 
   const { event } = data;
@@ -87,7 +87,7 @@ export default async function PotDiscoveryPage({ params }: PageProps) {
         <MoreUpcoming events={upcoming} />
         <FinalCta event={event} spotsLeft={spotsLeft} />
         <p className="mt-3 text-center text-[11px] text-text-dim">
-          By Coach Up organizer · Sam M. · Pot Night by Link &amp; Dink
+          By Coach Up organizer · Sam M. · The Pickleball Pot Popup by Link &amp; Dink
         </p>
       </main>
     </MobileShell>

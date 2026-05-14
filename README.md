@@ -1,6 +1,7 @@
-# Pot Night
+# The Pickleball Pot Popup (P3)
 
-A player-funded competitive pickleball bracket product for **Link & Dink**.
+**The Pickleball Pot Popup** — "P3" for short — is a player-funded competitive
+pickleball bracket product for **Link & Dink**.
 8-player doubles, Round Robin → Single Elimination, $10 entry, $80 winner-take-all
 pot paid the same night.
 
@@ -78,7 +79,7 @@ cp .env.example .env.local
 ### 4. Run
 
 ```bash
-pnpm dev               # http://localhost:3000  -> redirects to the current Pot Night
+pnpm dev               # http://localhost:3000  -> redirects to the current P3 popup
 pnpm lint              # biome check
 pnpm build             # production build
 ```
@@ -87,7 +88,7 @@ pnpm build             # production build
 
 | Route                     | What it is                                              |
 | ------------------------- | ------------------------------------------------------- |
-| `/`                       | Redirects to the current Pot Night                      |
+| `/`                       | Redirects to the current P3 popup                       |
 | `/pot/[slug]`             | **Discovery page** — the Phase 1 hero deliverable       |
 | `/pot/[slug]/rsvp`        | RSVP flow (auth-gated; stubbed payment)                 |
 | `/pot/[slug]/confirmed`   | Pre-event "You're in" confirmation                      |

@@ -4,7 +4,7 @@ export function HeroSection() {
   return (
     <section className="pb-3.5 pt-1.5">
       <Pill>
-        <span aria-hidden="true">●</span> Pot Night · weekly in the DMV
+        <span aria-hidden="true">●</span> The Pickleball Pot Popup · weekly in the DMV
       </Pill>
       <h1 className="my-3 text-[32px] font-black leading-none tracking-[-0.035em]">
         <span className="text-lime">Get paid</span>

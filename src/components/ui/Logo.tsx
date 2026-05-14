@@ -1,7 +1,7 @@
 /**
  * Link & Dink paddle-pair mark. Spruce rounded-square field, two lime paddles,
  * a smoke-white ball. `variant="single"` is the simpler one-circle mark used on
- * the Pot Night confirmation screen.
+ * the P3 confirmation screen.
  */
 export function Logo({
   size = 24,

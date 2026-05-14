@@ -1,6 +1,7 @@
 # Architecture
 
-One-page map of how Pot Night is wired, for whoever picks up Phase 2.
+One-page map of how P3 (The Pickleball Pot Popup) is wired, for whoever picks up
+Phase 2.
 
 ## Routing
 

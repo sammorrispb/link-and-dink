@@ -5,15 +5,15 @@ import type { PastResult } from "@/lib/domain";
 import { formatCents, formatDateTag } from "@/lib/format";
 
 export function PastEvents({ results }: { results: PastResult[] }) {
-  // For the genuine first Pot Night there is nothing to show yet — swap in the
+  // For the genuine first P3 popup there is nothing to show yet — swap in the
   // inaugural-cohort empty state (designer's note).
   if (results.length === 0) {
     return (
       <section>
-        <SectionHeader eyebrow="Past Pot Nights" title="Be one of the inaugural 8." />
+        <SectionHeader eyebrow="Past P3 Popups" title="Be one of the inaugural 8." />
         <Card>
           <p className="text-[13px] leading-relaxed text-text-muted">
-            No Pot Nights in the books yet. The first cohort sets the bar — show up, play, and your
+            No P3 popups in the books yet. The first cohort sets the bar — show up, play, and your
             result lands here.
           </p>
         </Card>
@@ -23,7 +23,7 @@ export function PastEvents({ results }: { results: PastResult[] }) {
 
   return (
     <section>
-      <SectionHeader eyebrow="Past Pot Nights" title="What just happened." />
+      <SectionHeader eyebrow="Past P3 Popups" title="What just happened." />
       <Card className="px-3.5 py-1">
         {results.map((result, i) => {
           const tag = formatDateTag(result.event.startsAt);

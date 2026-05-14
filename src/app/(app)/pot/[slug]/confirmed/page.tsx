@@ -67,7 +67,7 @@ export default async function ConfirmedPage({ params }: PageProps) {
     startsAt: event.startsAt,
     endsAt: event.endsAt,
     location: `${event.venueName}${event.venueAddress ? `, ${event.venueAddress}` : ""}`,
-    details: "Pot Night by Link & Dink — RR → Single Elim. Winner takes the pot.",
+    details: "The Pickleball Pot Popup by Link & Dink — RR → Single Elim. Winner takes the pot.",
   });
 
   return (

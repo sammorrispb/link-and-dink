@@ -1,9 +1,9 @@
--- seed.sql — Pot Night Phase 1 mock data.
+-- seed.sql — P3 (The Pickleball Pot Popup) Phase 1 mock data.
 -- Runs automatically after `supabase db reset`. Also re-runnable standalone via
 -- `pnpm db:seed` (truncates first, so it is idempotent).
 --
 -- Mirrors the names/numbers in pot-night-player-flow-v1.html so the discovery
--- page renders "4 of 8 spots left", the roster preview, and the Past Pot Nights
+-- page renders "4 of 8 spots left", the roster preview, and the Past P3 Popups
 -- list straight from the database.
 
 truncate table
@@ -64,41 +64,41 @@ insert into public.events
 values
   -- Featured upcoming event (the Phase 1 hero deliverable target).
   ('c0000000-0000-0000-0000-000000000001', 'pot-night-2026-05-26-ngpa',
-   'Tuesday Pot Night @ NGPA',
+   'Tuesday P3 Popup @ NGPA',
    '2026-05-26 19:30:00-04', '2026-05-26 21:00:00-04',
    'Next Gen Academy', 'Rockville, MD', '3.5-4.0',
    'rr_se_8p', 1000, 8000, 8, 'a0000000-0000-0000-0000-000000000001', 'open'),
 
   -- Past completed events.
   ('c0000000-0000-0000-0000-000000000002', 'pot-night-2026-05-19-ngpa',
-   'Tuesday Pot Night @ NGPA',
+   'Tuesday P3 Popup @ NGPA',
    '2026-05-19 19:30:00-04', '2026-05-19 21:00:00-04',
    'Next Gen Academy', 'Rockville, MD', '3.5-4.0',
    'rr_se_8p', 1000, 8000, 8, 'a0000000-0000-0000-0000-000000000001', 'completed'),
   ('c0000000-0000-0000-0000-000000000003', 'pot-night-2026-05-12-ngpa',
-   'Tuesday Pot Night @ NGPA',
+   'Tuesday P3 Popup @ NGPA',
    '2026-05-12 19:30:00-04', '2026-05-12 21:00:00-04',
    'Next Gen Academy', 'Rockville, MD', '3.5-4.0',
    'rr_se_8p', 1000, 8000, 8, 'a0000000-0000-0000-0000-000000000001', 'completed'),
   ('c0000000-0000-0000-0000-000000000004', 'pot-night-2026-05-05-ngpa',
-   'Tuesday Pot Night @ NGPA',
+   'Tuesday P3 Popup @ NGPA',
    '2026-05-05 19:30:00-04', '2026-05-05 21:00:00-04',
    'Next Gen Academy', 'Rockville, MD', '3.5-4.0',
    'rr_se_8p', 1000, 8000, 8, 'a0000000-0000-0000-0000-000000000001', 'completed'),
 
   -- More upcoming events.
   ('c0000000-0000-0000-0000-000000000005', 'pot-night-2026-06-02-ngpa',
-   'Tuesday Pot Night @ NGPA',
+   'Tuesday P3 Popup @ NGPA',
    '2026-06-02 19:30:00-04', '2026-06-02 21:00:00-04',
    'Next Gen Academy', 'Rockville, MD', '3.5-4.0',
    'rr_se_8p', 1000, 8000, 8, 'a0000000-0000-0000-0000-000000000001', 'open'),
   ('c0000000-0000-0000-0000-000000000006', 'pot-night-2026-06-09-ngpa',
-   'Tuesday Pot Night @ NGPA',
+   'Tuesday P3 Popup @ NGPA',
    '2026-06-09 19:30:00-04', '2026-06-09 21:00:00-04',
    'Next Gen Academy', 'Rockville, MD', '4.0-4.5',
    'rr_se_8p', 1000, 8000, 8, 'a0000000-0000-0000-0000-000000000001', 'open'),
   ('c0000000-0000-0000-0000-000000000007', 'pot-night-2026-06-16-ngpa',
-   'Tuesday Pot Night @ NGPA',
+   'Tuesday P3 Popup @ NGPA',
    '2026-06-16 19:30:00-04', '2026-06-16 21:00:00-04',
    'Next Gen Academy', 'Rockville, MD', '3.5-4.0',
    'rr_se_8p', 1000, 8000, 8, 'a0000000-0000-0000-0000-000000000001', 'open');
@@ -121,7 +121,7 @@ values
    'a0000000-0000-0000-0000-000000000005', 'paid', now(), 'confirmed', 4);
 
 -- ---------------------------------------------------------------------------
--- Matches: the final from each past event, so "Past Pot Nights" renders real
+-- Matches: the final from each past event, so "Past P3 Popups" renders real
 -- winners + scores. team_a = champion pair. (RR / semifinal rows are Phase 2.)
 -- ---------------------------------------------------------------------------
 insert into public.matches

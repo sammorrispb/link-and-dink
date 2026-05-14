@@ -3,7 +3,7 @@ import { Logo } from "@/components/ui/Logo";
 /**
  * App chrome bar. `brand="link-and-dink"` shows the paddle-pair mark + the
  * Link & Dink wordmark (discovery page); `brand="pot-night"` shows the single
- * mark + "Pot Night" (confirmation page).
+ * mark + the "P3" short brand (confirmation page).
  */
 export function TopBar({
   brand = "link-and-dink",
@@ -18,7 +18,7 @@ export function TopBar({
         <Logo size={24} variant={brand === "pot-night" ? "single" : "paddles"} />
         <span className="text-[14px] font-extrabold text-text">
           {brand === "pot-night" ? (
-            "Pot Night"
+            "P3"
           ) : (
             <>
               Link <span className="text-lime">&amp;</span> Dink

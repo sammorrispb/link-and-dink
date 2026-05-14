@@ -13,7 +13,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
   const headline = "Get paid to play.";
   const detail = event
     ? `${formatEventDateTime(event.startsAt)} · ${event.venueName}`
-    : "Pot Night by Link & Dink";
+    : "The Pickleball Pot Popup by Link & Dink";
   const pot = event ? formatCents(event.potAmountCents) : "$80";
 
   return new ImageResponse(
@@ -40,7 +40,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
           }}
         />
         <div style={{ fontSize: 30, fontWeight: 800, color: "#fffdfa" }}>
-          Pot Night · Link & Dink
+          The Pickleball Pot Popup · Link & Dink
         </div>
       </div>
 

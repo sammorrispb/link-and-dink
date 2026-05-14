@@ -44,8 +44,8 @@ export function WhoCanPlay() {
         </div>
       </Card>
       <Callout className="mt-2.5" lead="For the inaugural cohort:">
-        Your Pot Night performance sets your starting bracket. Show up, play, get rated. The gate
-        kicks in for the 4th week onward.
+        Your P3 performance sets your starting bracket. Show up, play, get rated. The gate kicks in
+        for the 4th week onward.
       </Callout>
     </section>
   );
