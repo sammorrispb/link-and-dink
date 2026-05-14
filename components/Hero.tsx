@@ -45,7 +45,7 @@ export default function Hero() {
             Thursdays at 7am. Curated games this week, who&apos;s playing where,
             one drill, one rule, one local pick.
           </p>
-          <SignupCard />
+          <SignupCard source="homepage_hero" />
         </aside>
       </div>
     </section>

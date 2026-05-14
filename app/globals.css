@@ -386,6 +386,38 @@ header.nav {
   content: "→ ";
   color: var(--lime);
 }
+.signup-success {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text);
+  background: rgba(202, 243, 104, 0.1);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-btn);
+  padding: 14px 16px;
+}
+.signup-success strong {
+  color: var(--lime);
+}
+.signup-error {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pink);
+}
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+.signup-form input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.newsletter-card .signup-success {
+  max-width: 460px;
+  margin: 0 auto;
+  text-align: left;
+}
 
 /* === STATS STRIP === */
 .stats {

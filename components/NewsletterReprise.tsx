@@ -12,7 +12,7 @@ export default function NewsletterReprise() {
             worth showing up to, a drill of the week, a featured player, and a
             local pick. Specific, useful, short.
           </p>
-          <SignupCard />
+          <SignupCard source="homepage_reprise" />
         </div>
       </div>
     </section>

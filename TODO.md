@@ -5,10 +5,13 @@ session.
 
 ## High — blocks a real launch
 
-1. **Newsletter ESP integration.** The signup form (`components/SignupCard.tsx`)
-   currently submits to a `console.log` placeholder. Pick an ESP (Beehiiv,
-   ConvertKit, etc.), wire the form to it, add success/error states, and add
-   spam protection (honeypot or captcha).
+1. **Newsletter — sending.** Signup *capture* is done: the form writes to the
+   Supabase `subscribers` table (project `link-and-dink`,
+   `tqqhbccomjhfnylafwnk`) via `/api/subscribe`, with success/error states and a
+   honeypot. Still needed: a way to *send* "Link & Dink Weekly" — Beehiiv free
+   (2,500 subs) is the frontrunner; import the Supabase list when ready.
+   Follow-ups for the capture flow: real rate limiting on `/api/subscribe`
+   (honeypot only for now), and a double opt-in / confirmation email.
 2. **Journey landing pages.** The three journey cards (`/play`, `/improve`,
    `/intro`) link to `#`. Build the real pages, or point them at interim
    content.
