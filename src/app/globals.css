@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+/*
+  Pot Night design system — Tailwind v4 theme.
+  Brand lime is #CAF368 in the Notion brand guide (authoritative for print/social);
+  in-product UI uses the softer #b5d654 for readability. See README.
+*/
+@theme {
+  /* Brand palette */
+  --color-spruce: #044026;
+  --color-lime: #b5d654;
+  --color-lime-hover: #c5e570;
+  --color-green-black: #01160d;
+  --color-deep-purple: #2c2745;
+  --color-violet: #b5aff1;
+  --color-maroon: #470f10;
+  --color-pink: #f5b6d1;
+  --color-yellow: #fed144;
+  --color-smoke: #fffdfa;
+  --color-danger: #ff7a85;
+
+  /* Semantic surfaces */
+  --color-bg: #01160d;
+  --color-surface-1: #044026;
+  --color-surface-2: #08251a;
+
+  /* Semantic text */
+  --color-text: #fffdfa;
+  --color-text-muted: rgba(255, 253, 250, 0.72);
+  --color-text-dim: rgba(255, 253, 250, 0.55);
+
+  /* Borders */
+  --color-border-subtle: rgba(181, 214, 84, 0.08);
+  --color-border-medium: rgba(181, 214, 84, 0.18);
+
+  /* Action */
+  --color-action: #b5d654;
+  --color-action-text: #01160d;
+
+  /* Radii */
+  --radius-btn: 12px;
+  --radius-card: 16px;
+  --radius-pill: 9999px;
+
+  /* Font */
+  --font-sans: var(--font-outfit), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+html,
+body {
+  background: #050d0a;
+  color: var(--color-smoke);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hide scrollbars on the mobile content column */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
