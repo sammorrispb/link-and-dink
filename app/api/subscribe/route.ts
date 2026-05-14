@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { getSupabaseClient } from "@/lib/supabase";
+import { getEmailProvider } from "@/lib/email";
+import { confirmUrl } from "@/lib/email/links";
+import { renderConfirmationEmail } from "@/lib/email/confirmation";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const VALID_SOURCES = ["homepage_hero", "homepage_reprise"];
@@ -44,11 +47,18 @@ export async function POST(request: Request) {
     );
   }
 
-  const { error } = await supabase.from("subscribers").insert({ email, source });
+  // Generate the id ourselves so we can build the confirmation link — the
+  // publishable-key client can't read the row back under the INSERT-only RLS
+  // policy. The subscriber starts unconfirmed (confirmed_at defaults null).
+  const id = crypto.randomUUID();
+  const { error } = await supabase
+    .from("subscribers")
+    .insert({ id, email, source });
 
   if (error) {
-    // 23505 = unique violation: already subscribed. Treat as success — the
-    // outcome the user wants, and we don't reveal who's on the list.
+    // 23505 = unique violation: already in the system. Treat as success — we
+    // don't reveal list membership. (v1 limitation: doesn't re-send the
+    // confirmation if they signed up before but never confirmed — see TODO.)
     if (error.code === "23505") {
       return NextResponse.json({ ok: true });
     }
@@ -57,6 +67,18 @@ export async function POST(request: Request) {
       { error: "Something went wrong. Try again." },
       { status: 500 },
     );
+  }
+
+  // Double opt-in: send the confirmation email. A send failure is a soft error
+  // — the signup itself succeeded, so don't fail the request.
+  try {
+    const { subject, html, text } = renderConfirmationEmail(confirmUrl(id));
+    const result = await getEmailProvider().send({ to: email, subject, html, text });
+    if ("error" in result) {
+      console.error("[subscribe] confirmation send failed:", result.error);
+    }
+  } catch (err) {
+    console.error("[subscribe] confirmation send threw:", err);
   }
 
   return NextResponse.json({ ok: true });
