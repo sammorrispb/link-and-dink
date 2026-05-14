@@ -16,7 +16,7 @@ const FOOT_COLUMNS = [
       { label: "New to pickleball", href: "#" },
       { label: "Get rated", href: "#" },
       { label: "Youth · Next Gen", href: "#" },
-      { label: "Coach Path", href: "#" },
+      { label: "Coach Up", href: "/coach-up" },
     ],
   },
   {

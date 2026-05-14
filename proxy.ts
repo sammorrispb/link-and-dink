@@ -29,5 +29,11 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/api/admin/:path*",
+    // Coach Up member dashboard — gated behind the admin-cookie session for
+    // v1 (real per-member auth ships with the product app).
+    "/coach-up/dashboard",
+  ],
 };
