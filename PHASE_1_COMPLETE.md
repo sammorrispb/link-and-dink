@@ -50,16 +50,24 @@
 - `pnpm exec tsc --noEmit` clean.
 - `pnpm lint` (Biome) clean — no errors, no warnings.
 
+**Provisioned + verified live**
+
+- Supabase: all 7 migrations + seed applied to the `link-and-dink` project
+  (ref `tqqhbccomjhfnylafwnk`), alongside the existing newsletter tables.
+- Discovery page + RSVP sign-in verified rendering against the live DB, both on
+  local dev and the Vercel deployment.
+- Vercel: `pot-night` project linked, env vars set (Production + Preview), GitHub
+  repo connected for auto-deploy on push, first deployment live and public.
+- Lighthouse (mobile) on the deployed discovery page: **Performance 99,
+  Accessibility 100** — clears the ≥90 bar.
+
 ## What was skipped, and why
 
 Everything on the prompt's out-of-scope list, plus:
 
-- **No live render / browser test.** Docker isn't installed in the build
-  environment, so `supabase start` couldn't run, and no cloud Supabase project
-  was auto-provisioned (creating cloud resources is left to Sam — see below).
-  Code correctness is verified (build + typecheck + lint); **feature
-  correctness on a real page is not yet verified.**
-- **Lighthouse (criterion #5) not measured** — needs a running app + DB.
+- **Magic-link RSVP round-trip not exercised end-to-end.** The sign-in form
+  renders and the redirect URLs are configured; sending + clicking an actual
+  magic-link email wasn't walked through.
 - Live event UI, score entry/confirmation, draft mechanic, organizer console,
   SMS, Stripe live, DUPR API, coach eval flow, promotion/relegation, Link Score
   math, multi-bracket, onboarding, notifications — all Phase 2+, schema-only or
@@ -102,13 +110,20 @@ Everything on the prompt's out-of-scope list, plus:
     files were removed on this branch only; `main` is untouched. This branch is
     the standalone Pot Night codebase — extract to its own repo if/when you want.
 
+## Infra (done)
+
+- [x] **Supabase** — migrations + seed applied to the `link-and-dink` project.
+- [x] **Vercel** — `pot-night` project linked, env vars set, GitHub repo
+      connected for auto-deploy, first deployment live + public.
+- [x] **Live render + Lighthouse** — verified; Performance 99, Accessibility 100.
+
 ## Phase 2 starting punch-list
 
-- [ ] **Provision infra** — create the Supabase project (do *not* reuse the
-      Hub's), `supabase db push` + run `seed.sql`, set env vars, import to
-      Vercel, confirm a preview URL builds.
-- [ ] **Live render verification + Lighthouse** — confirm `/pot/[slug]` matches
-      the mockup on a real device; hit ≥90 Performance + Accessibility.
+- [ ] **Magic-link RSVP** — walk an actual sign-in email through end-to-end now
+      that the redirect URLs are configured.
+- [ ] **Custom domain + `NEXT_PUBLIC_SITE_URL`** — point linkanddink.com (or a
+      subdomain) at the Vercel project and set `NEXT_PUBLIC_SITE_URL` so OG
+      images + magic-link redirects use the real host.
 - [ ] **Stripe live** — implement `createCheckoutSession`, the webhook to flip
       `payment_status` → `paid`, and refunds.
 - [ ] **Live event UI** (mockup Screen 3) — round/court/timer, standings,
