@@ -5,9 +5,12 @@
 create extension if not exists "pgcrypto";
 
 -- Shared updated_at trigger used by every table with an updated_at column.
+-- search_path is pinned empty (Supabase advisor 0011) — the body only calls
+-- now() from pg_catalog, so it needs nothing on the path.
 create or replace function public.set_updated_at()
 returns trigger
 language plpgsql
+set search_path = ''
 as $$
 begin
   new.updated_at = now();
