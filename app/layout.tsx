@@ -15,7 +15,7 @@ const geist = Geist({
   display: "swap",
 });
 
-const SITE_URL = "https://link-and-dink.vercel.app";
+const SITE_URL = process.env.SITE_URL ?? "https://www.linkanddink.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
