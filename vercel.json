@@ -1,8 +1,12 @@
 {
-  "crons": [
-    {
-      "path": "/api/cron/drain",
-      "schedule": "* * * * *"
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "buildCommand": "pnpm build",
+  "installCommand": "pnpm install",
+  "git": {
+    "deploymentEnabled": {
+      "PotNight": true,
+      "main": false
     }
-  ]
+  }
 }
