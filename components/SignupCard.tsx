@@ -42,8 +42,8 @@ export default function SignupCard({ source }: { source: string }) {
   if (status === "success") {
     return (
       <div className="signup-success" role="status">
-        <strong>You&apos;re in.</strong> First issue hits your inbox Thursday at
-        7am.
+        <strong>Almost there.</strong> Check your inbox for a confirmation link
+        — click it and you&apos;re in.
       </div>
     );
   }
