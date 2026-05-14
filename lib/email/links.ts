@@ -62,3 +62,30 @@ export function unsubscribeApiUrl(token: string, issueId?: string): string {
   const q = issueId ? `?token=${token}&i=${issueId}` : `?token=${token}`;
   return siteUrl(`/api/unsubscribe${q}`);
 }
+
+/**
+ * Per-recipient tracking-token placeholder. Plain ASCII so it survives markdown
+ * rendering and juice/cheerio re-serialization; the send drain replaces it with
+ * each subscriber's `tracking_token`.
+ */
+export const TRACKING_TOKEN_PLACEHOLDER = "tracking-token-placeholder";
+
+/**
+ * Tracked click link. The destination is NOT a URL param — the click route
+ * resolves `linkId` against the server-side `issue_links` table, so this can't
+ * be abused as an open redirector. The signature protects issue + link id.
+ */
+export function trackClickUrl(issueId: string, linkId: string): string {
+  const sig = sign(`click:${issueId}:${linkId}`);
+  return siteUrl(
+    `/api/track/click?i=${issueId}&l=${linkId}&s=${sig}&t=${TRACKING_TOKEN_PLACEHOLDER}`,
+  );
+}
+
+/** Open-tracking 1x1 pixel URL. */
+export function trackOpenUrl(issueId: string): string {
+  const sig = sign(`open:${issueId}`);
+  return siteUrl(
+    `/api/track/open?i=${issueId}&s=${sig}&t=${TRACKING_TOKEN_PLACEHOLDER}`,
+  );
+}

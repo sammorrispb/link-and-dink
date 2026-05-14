@@ -2,7 +2,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { getServiceClient } from "@/lib/supabase-admin";
 import { getEmailProvider } from "@/lib/email";
 import { renderEmail } from "@/lib/email/render";
-import { unsubscribePageUrl, unsubscribeApiUrl } from "@/lib/email/links";
+import {
+  unsubscribePageUrl,
+  unsubscribeApiUrl,
+  TRACKING_TOKEN_PLACEHOLDER,
+} from "@/lib/email/links";
 import { UNSUBSCRIBE_PLACEHOLDER } from "@/lib/email/template";
 
 const BATCH_SIZE = 25;
@@ -27,6 +31,7 @@ type SubscriberRow = {
   status: string;
   confirmed_at: string | null;
   unsubscribe_token: string;
+  tracking_token: string;
 };
 
 export type DrainResult = {
@@ -72,15 +77,26 @@ export async function drain(): Promise<DrainResult> {
     if (batch.length === 0) continue;
     result.claimed += batch.length;
 
-    // Render once per issue — per-recipient is just a string replace.
-    const rendered = renderEmail(issue);
+    // Fetch this issue's tracked links, then render once per issue — the
+    // per-recipient step is just a string replace.
+    const { data: linkData } = await supabase
+      .from("issue_links")
+      .select("id, url")
+      .eq("issue_id", issue.id);
+    const issueLinks = (linkData ?? []) as { id: string; url: string }[];
+    const rendered = renderEmail(issue, {
+      issueId: issue.id,
+      links: issueLinks,
+    });
     const provider = getEmailProvider();
 
     // Batch-fetch subscribers + suppressions (2 queries, not 2N).
     const subscriberIds = batch.map((r) => r.subscriber_id);
     const { data: subsData } = await supabase
       .from("subscribers")
-      .select("id, email, status, confirmed_at, unsubscribe_token")
+      .select(
+        "id, email, status, confirmed_at, unsubscribe_token, tracking_token",
+      )
       .in("id", subscriberIds);
     const subs = new Map(
       ((subsData ?? []) as SubscriberRow[]).map((s) => [s.id, s]),
@@ -124,7 +140,9 @@ export async function drain(): Promise<DrainResult> {
       // RFC 8058 one-click POST endpoint.
       const pageUrl = unsubscribePageUrl(sub.unsubscribe_token, issue.id);
       const apiUrl = unsubscribeApiUrl(sub.unsubscribe_token, issue.id);
-      const html = rendered.html.replaceAll(UNSUBSCRIBE_PLACEHOLDER, pageUrl);
+      const html = rendered.html
+        .replaceAll(UNSUBSCRIBE_PLACEHOLDER, pageUrl)
+        .replaceAll(TRACKING_TOKEN_PLACEHOLDER, sub.tracking_token);
       const text = rendered.text.replaceAll(UNSUBSCRIBE_PLACEHOLDER, pageUrl);
 
       const sendResult = await provider.send({
