@@ -1,0 +1,2186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#0a1410" />
+<title>Popup — Link & Dink</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  /* === Link & Dink brand tokens === */
+  :root {
+    --bg: #0a1410;
+    --surface: #13201a;
+    --surface-2: #1a2b22;
+    --surface-3: #223a30;
+    --border: #1f3329;
+    --border-strong: #2c4a3c;
+    --text: #e8f0eb;
+    --text-dim: #8aa39a;
+    --text-faint: #5a7368;
+    --spruce: #0a4d36;
+    --spruce-light: #0f6648;
+    --lime: #c5e63b;
+    --lime-soft: rgba(197, 230, 59, 0.14);
+    --lime-bright: #d4f548;
+    --danger: #e8624c;
+    --warning: #f5b733;
+    --radius: 14px;
+    --radius-sm: 10px;
+    --radius-lg: 22px;
+    --shadow: 0 8px 32px rgba(0,0,0,0.4);
+    --shadow-lift: 0 12px 40px rgba(197,230,59,0.08);
+    --pad: 16px;
+    --pad-lg: 24px;
+    --transition: 180ms cubic-bezier(.2,.8,.2,1);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    background: radial-gradient(ellipse at top, #0e1d16 0%, var(--bg) 60%);
+    color: var(--text);
+    font-family: 'Outfit', -apple-system, system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: contain;
+  }
+  /* === Layout shell === */
+  .app {
+    max-width: 720px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: calc(72px + env(safe-area-inset-bottom));
+  }
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: linear-gradient(180deg, rgba(10,20,16,0.96) 0%, rgba(10,20,16,0.85) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: calc(env(safe-area-inset-top) + 12px) var(--pad) 12px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-mark {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--spruce-light), var(--spruce));
+    display: grid; place-items: center;
+    font-weight: 800; font-size: 14px; color: var(--lime);
+    box-shadow: 0 0 0 1px var(--border-strong) inset;
+  }
+  .brand-name { font-weight: 700; font-size: 15px; letter-spacing: 0.2px; }
+  .brand-name .dim { color: var(--text-dim); font-weight: 400; }
+  .topbar-right { display: flex; gap: 8px; align-items: center; }
+  .event-chip {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 13px;
+    color: var(--text-dim);
+    max-width: 220px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .event-chip strong { color: var(--text); font-weight: 600; }
+
+  main { flex: 1; padding: var(--pad); }
+
+  /* === Bottom nav === */
+  .bottomnav {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 60;
+    background: rgba(10,20,16,0.92);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-top: 1px solid var(--border);
+    padding: 8px var(--pad) calc(8px + env(safe-area-inset-bottom));
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+  }
+  .nav-btn {
+    background: none; border: 0; color: var(--text-faint);
+    font-family: inherit; font-size: 11px; font-weight: 500;
+    padding: 8px 4px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    cursor: pointer; transition: color var(--transition);
+    border-radius: 10px;
+  }
+  .nav-btn:hover { color: var(--text-dim); }
+  .nav-btn.active { color: var(--lime); }
+  .nav-btn.active .nav-icon { background: var(--lime-soft); color: var(--lime); }
+  .nav-icon {
+    width: 36px; height: 30px; display: grid; place-items: center;
+    border-radius: 10px; transition: all var(--transition);
+    color: var(--text-faint);
+  }
+  .nav-btn.active .nav-icon svg { stroke: var(--lime); }
+  .nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* === Common UI primitives === */
+  .stack { display: flex; flex-direction: column; gap: 12px; }
+  .stack-lg { display: flex; flex-direction: column; gap: 18px; }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .row-between { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--pad);
+  }
+  .card-lift {
+    background: var(--surface-2);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    padding: var(--pad);
+  }
+  .section-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1.4px;
+    color: var(--text-faint); font-weight: 600; margin: 8px 4px;
+  }
+  .h1 { font-size: 28px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.4px; }
+  .h2 { font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -0.2px; }
+  .h3 { font-size: 15px; font-weight: 600; margin: 0; }
+  .muted { color: var(--text-dim); font-size: 14px; }
+  .faint { color: var(--text-faint); font-size: 13px; }
+
+  /* Inputs */
+  .label { font-size: 13px; color: var(--text-dim); margin-bottom: 6px; display: block; font-weight: 500; }
+  .input, .select, .textarea {
+    width: 100%;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 14px;
+    color: var(--text);
+    font-family: inherit; font-size: 16px;
+    outline: none;
+    transition: border-color var(--transition), background var(--transition);
+  }
+  .input:focus, .select:focus, .textarea:focus { border-color: var(--lime); background: var(--surface-3); }
+  .input.score {
+    text-align: center; font-size: 28px; font-weight: 700;
+    padding: 12px 0; letter-spacing: -0.5px;
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-family: inherit; font-size: 15px; font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition);
+    min-height: 48px;
+  }
+  .btn:hover { background: var(--surface-3); border-color: var(--lime); }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary {
+    background: var(--lime); color: #0a1410;
+    border-color: var(--lime);
+    font-weight: 700;
+  }
+  .btn-primary:hover { background: var(--lime-bright); border-color: var(--lime-bright); }
+  .btn-ghost {
+    background: transparent; border-color: var(--border);
+  }
+  .btn-danger { color: var(--danger); border-color: rgba(232,98,76,0.4); }
+  .btn-danger:hover { background: rgba(232,98,76,0.1); border-color: var(--danger); }
+  .btn-block { width: 100%; }
+  .btn-sm { padding: 8px 12px; min-height: 36px; font-size: 13px; }
+
+  /* Pills / chips */
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 12px; color: var(--text-dim);
+    font-weight: 500;
+  }
+  .pill-lime { color: var(--lime); border-color: rgba(197,230,59,0.4); background: var(--lime-soft); }
+  .pill-warn { color: var(--warning); border-color: rgba(245,183,51,0.35); background: rgba(245,183,51,0.1); }
+  .pill-done { color: var(--text-dim); border-color: var(--border); background: transparent; }
+
+  /* Format picker tiles */
+  .picker-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .picker-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .picker-tile {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition);
+    font-weight: 600;
+    color: var(--text);
+  }
+  .picker-tile:hover { border-color: var(--border-strong); }
+  .picker-tile.selected {
+    background: var(--lime-soft);
+    border-color: var(--lime);
+    color: var(--lime);
+  }
+  .picker-tile small { display: block; font-weight: 400; color: var(--text-faint); font-size: 11px; margin-top: 4px; }
+  .picker-tile.selected small { color: var(--text-dim); }
+
+  .format-card {
+    display: flex; gap: 14px; align-items: flex-start;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+  .format-card:hover { border-color: var(--border-strong); }
+  .format-card.selected { border-color: var(--lime); background: var(--lime-soft); }
+  .format-icon {
+    width: 40px; height: 40px; flex-shrink: 0;
+    border-radius: 10px;
+    background: var(--surface-3);
+    display: grid; place-items: center;
+    color: var(--lime);
+  }
+  .format-card.selected .format-icon { background: rgba(197,230,59,0.18); }
+  .format-card .format-name { font-weight: 700; font-size: 15px; }
+  .format-card .format-desc { font-size: 13px; color: var(--text-dim); margin-top: 3px; }
+  .format-card .format-counts { font-size: 12px; color: var(--text-faint); margin-top: 4px; }
+
+  /* Player list */
+  .player-row {
+    display: flex; gap: 10px; align-items: center;
+    padding: 10px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+  .player-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--surface-3);
+    display: grid; place-items: center;
+    font-size: 12px; font-weight: 700;
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+  .player-row .input { background: transparent; border: 0; padding: 6px; font-size: 16px; }
+  .player-row .input:focus { background: var(--surface); border-radius: 8px; }
+  .player-row .btn-icon { background: transparent; border: 0; color: var(--text-faint); padding: 6px; cursor: pointer; }
+  .player-row .btn-icon:hover { color: var(--danger); }
+
+  /* Match cards */
+  .round-header {
+    display: flex; align-items: center; gap: 14px;
+    margin: 30px 2px 14px;
+    padding: 14px 4px 10px;
+    border-top: 1px solid var(--border);
+  }
+  .round-header.first { border-top: 0; margin-top: 6px; padding-top: 4px; }
+  .round-number {
+    font-size: 56px; font-weight: 800; color: var(--lime);
+    line-height: 0.85; letter-spacing: -2.5px;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 32px rgba(197,230,59,0.18);
+  }
+  .round-meta { display: flex; flex-direction: column; gap: 2px; }
+  .round-eyebrow {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 1.8px;
+    color: var(--text-dim); font-weight: 800;
+  }
+  .round-sub { font-size: 12px; color: var(--text-faint); font-weight: 500; }
+  .round-header .pill { margin-left: auto; font-size: 12px; padding: 5px 12px; }
+  .round-header .pill { font-size: 11px; }
+  /* Playoff rounds — distinct treatment so the bracket reads as "different" from RR */
+  .round-header.playoff {
+    border-top: 2px solid var(--lime);
+    background: linear-gradient(180deg, rgba(197,230,59,0.10), transparent 80%);
+    padding-top: 18px;
+    margin-top: 36px;
+    border-radius: 8px 8px 0 0;
+  }
+  .round-header.playoff .round-number {
+    font-size: 44px; letter-spacing: -1.5px;
+    text-shadow: 0 0 28px rgba(197,230,59,0.35);
+  }
+  .round-header.playoff .round-eyebrow { color: var(--lime); letter-spacing: 2.2px; }
+
+  /* Partner-pick screen */
+  .pick-hint {
+    background: rgba(197,230,59,0.10);
+    border: 1px solid rgba(197,230,59,0.32);
+    color: var(--lime);
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 14px; font-weight: 600;
+    margin: 6px 0 14px;
+  }
+  .pick-hint-quiet {
+    background: transparent;
+    border: 1px dashed var(--border);
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+  .pick-team {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .pick-team-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1.8px;
+    color: var(--lime); font-weight: 800; margin-bottom: 10px;
+  }
+  .pick-team-tiles { display: flex; gap: 10px; }
+  .pick-tile {
+    flex: 1; min-height: 92px;
+    background: var(--surface-2, #1a1f1d);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 12px;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+    cursor: pointer;
+    transition: all var(--transition);
+    color: var(--text);
+    text-align: left;
+    font: inherit;
+  }
+  .pick-tile:hover { border-color: var(--lime); transform: translateY(-1px); }
+  .pick-tile.selected {
+    border-color: var(--lime);
+    box-shadow: 0 0 0 4px rgba(197,230,59,0.20);
+    background: rgba(197,230,59,0.08);
+    transform: scale(1.02);
+  }
+  .pick-seed {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1.4px;
+    color: var(--text-dim); font-weight: 700;
+  }
+  .pick-tile.selected .pick-seed { color: var(--lime); }
+  .pick-name { font-size: 18px; font-weight: 700; color: var(--text); }
+
+  .match {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+    transition: all var(--transition);
+    overflow: hidden;
+  }
+  .match.complete, .match.locked {
+    border-color: var(--lime);
+    background: linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 100%);
+    box-shadow: 0 0 0 1px var(--lime-soft) inset;
+  }
+  .match.live { border-color: var(--lime); box-shadow: 0 0 0 1px var(--lime-soft); }
+
+  /* Lock animation — kinesthetic feedback when Confirm Score is tapped */
+  .match.just-locked {
+    animation: matchLock 600ms cubic-bezier(.2,.85,.25,1);
+  }
+  @keyframes matchLock {
+    0%   { transform: scale(1); box-shadow: 0 0 0 0 rgba(197,230,59,0); }
+    25%  { transform: scale(1.022); box-shadow: 0 0 0 6px rgba(197,230,59,0.35), 0 10px 30px rgba(197,230,59,0.22); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(197,230,59,0); }
+  }
+  .lock-burst {
+    position: absolute; inset: 0;
+    pointer-events: none;
+    display: grid; place-items: center;
+    z-index: 5;
+  }
+  .lock-burst::after {
+    content: '✓';
+    width: 92px; height: 92px;
+    border-radius: 50%;
+    background: var(--lime);
+    color: #0a1410;
+    display: grid; place-items: center;
+    font-size: 56px; font-weight: 900;
+    box-shadow: 0 12px 40px rgba(197,230,59,0.55);
+    animation: checkBurst 640ms cubic-bezier(.2,.85,.25,1) forwards;
+  }
+  @keyframes checkBurst {
+    0%   { opacity: 0; transform: scale(0.4) rotate(-12deg); }
+    32%  { opacity: 1; transform: scale(1.14) rotate(0deg); }
+    65%  { opacity: 1; transform: scale(1) rotate(0deg); }
+    100% { opacity: 0; transform: scale(1.10) rotate(0deg); }
+  }
+
+  .match-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+    gap: 12px;
+  }
+  /* Court number — must be readable from across the venue */
+  .match-court { display: flex; align-items: baseline; gap: 10px; }
+  .match-court .pool-tag {
+    align-self: center;
+    background: var(--surface-3); color: var(--lime);
+    padding: 3px 10px; border-radius: 999px;
+    font-size: 11px; font-weight: 800; letter-spacing: 1.2px;
+    border: 1px solid rgba(197,230,59,0.3);
+  }
+  .match-court .court-eyebrow {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 1.6px;
+    color: var(--text-faint); font-weight: 800;
+    align-self: center;
+  }
+  .match-court .court-num {
+    font-size: 44px; font-weight: 800; color: var(--text);
+    line-height: 0.82; letter-spacing: -1.8px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Team rows — winner pops, loser recedes */
+  .team-row {
+    display: grid; grid-template-columns: 1fr 90px;
+    align-items: center; gap: 10px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    transition: background var(--transition), border-color var(--transition), opacity var(--transition), box-shadow var(--transition);
+  }
+  .team-row + .team-row { margin-top: 4px; }
+  .team-row .names { font-weight: 600; font-size: 15px; letter-spacing: -0.1px; }
+  .team-row .partner { color: var(--text-dim); font-weight: 400; }
+
+  .team-row.winner-row {
+    background: linear-gradient(90deg, rgba(197,230,59,0.22) 0%, rgba(197,230,59,0.06) 100%);
+    border-color: rgba(197,230,59,0.55);
+    box-shadow: inset 4px 0 0 var(--lime), 0 4px 14px rgba(197,230,59,0.10);
+  }
+  .team-row.winner-row .names {
+    color: var(--lime); font-weight: 800; font-size: 16px;
+  }
+  .team-row.winner-row .partner { color: var(--lime); opacity: 0.85; font-weight: 600; }
+  .team-row.loser-row { opacity: 0.5; }
+  .team-row.loser-row .names { color: var(--text-dim); font-weight: 500; }
+
+  .vs-divider {
+    text-align: center; color: var(--text-faint);
+    font-size: 11px; font-weight: 700; letter-spacing: 2px;
+    padding: 4px 0;
+  }
+  .score-display {
+    background: var(--surface-3); color: var(--text);
+    border-radius: 8px; padding: 8px 10px;
+    text-align: center; font-weight: 700; font-size: 22px;
+    min-width: 56px;
+    font-variant-numeric: tabular-nums;
+  }
+  .score-display.winner {
+    background: var(--lime); color: #0a1410;
+    box-shadow: 0 4px 14px rgba(197,230,59,0.30);
+  }
+  .score-input { width: 90px; }
+  .input.score { font-size: 30px; }
+
+  /* Standings */
+  .table {
+    width: 100%; border-collapse: collapse;
+    background: var(--surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .table th, .table td {
+    padding: 10px 8px; text-align: left;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .table th {
+    background: var(--surface-2);
+    color: var(--text-dim);
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+    font-weight: 600;
+  }
+  .table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .table tbody tr:last-child td { border-bottom: 0; }
+  .table tbody tr.seed-1 td { background: rgba(197,230,59,0.08); }
+  .table .seed-cell { font-weight: 700; color: var(--lime); }
+  .table .player-cell { font-weight: 600; }
+
+  /* Champion banner */
+  .champion {
+    background: linear-gradient(135deg, var(--spruce) 0%, var(--spruce-light) 100%);
+    border: 1px solid var(--lime);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 18px;
+    box-shadow: var(--shadow-lift);
+  }
+  .champion .label { color: var(--lime); text-transform: uppercase; letter-spacing: 2px; font-size: 11px; font-weight: 700; margin: 0 0 8px; }
+  .champion .name { font-size: 28px; font-weight: 800; color: white; letter-spacing: -0.5px; }
+  .champion .pot { color: var(--lime); font-size: 18px; font-weight: 700; margin-top: 6px; }
+
+  /* Empty states */
+  .empty {
+    text-align: center;
+    padding: 48px 16px;
+    color: var(--text-dim);
+  }
+  .empty-icon { font-size: 36px; opacity: 0.5; margin-bottom: 10px; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: calc(80px + env(safe-area-inset-bottom)); left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface-3);
+    border: 1px solid var(--border-strong);
+    color: var(--text);
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-size: 14px; font-weight: 500;
+    z-index: 100;
+    box-shadow: var(--shadow);
+    animation: toast-in 200ms ease-out;
+  }
+  @keyframes toast-in {
+    from { opacity: 0; transform: translate(-50%, 12px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+  }
+
+  /* Screen visibility */
+  .screen { display: none; animation: fade-in 220ms ease-out; }
+  .screen.active { display: block; }
+  @keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Sponsor banner */
+  .sponsor-banner {
+    background: linear-gradient(90deg, var(--surface-2), var(--surface));
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+    font-size: 13px;
+  }
+  .sponsor-banner .label { color: var(--text-faint); text-transform: uppercase; letter-spacing: 1.4px; font-size: 10px; }
+  .sponsor-banner .name { color: var(--lime); font-weight: 700; font-size: 14px; }
+  .sponsor-banner .pot { font-weight: 700; color: var(--text); font-size: 16px; }
+
+  /* Sessions */
+  .session-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+  .session-row .when { font-size: 13px; color: var(--text-dim); }
+  .session-row .who { font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">L&amp;D</div>
+      <div class="brand-name">Popup<span class="dim"> · Link &amp; Dink</span></div>
+    </div>
+    <div class="topbar-right">
+      <div id="event-chip" class="event-chip" hidden></div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Screens injected by JS -->
+    <section id="screen-home" class="screen active"></section>
+    <section id="screen-setup" class="screen"></section>
+    <section id="screen-roster" class="screen"></section>
+    <section id="screen-schedule" class="screen"></section>
+    <section id="screen-partner-pick" class="screen"></section>
+    <section id="screen-standings" class="screen"></section>
+    <section id="screen-history" class="screen"></section>
+    <section id="screen-settings" class="screen"></section>
+  </main>
+
+  <nav class="bottomnav" id="bottomnav">
+    <button class="nav-btn" data-screen="home">
+      <span class="nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
+      </span>
+      Home
+    </button>
+    <button class="nav-btn" data-screen="roster" data-needs="event">
+      <span class="nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14c2.5 0 4 1.5 4 4"/></svg>
+      </span>
+      Roster
+    </button>
+    <button class="nav-btn" data-screen="schedule" data-needs="schedule">
+      <span class="nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M8 3v4"/><path d="M16 3v4"/></svg>
+      </span>
+      Schedule
+    </button>
+    <button class="nav-btn" data-screen="standings" data-needs="schedule">
+      <span class="nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="14" width="4" height="7"/><rect x="10" y="9" width="4" height="12"/><rect x="16" y="4" width="4" height="17"/></svg>
+      </span>
+      Standings
+    </button>
+    <button class="nav-btn" data-screen="settings">
+      <span class="nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      </span>
+      Settings
+    </button>
+  </nav>
+</div>
+
+<script>
+/* ============================================================
+   Popup — Link & Dink Tournament Engine v0.1
+   Single-file, localStorage-backed, mobile-first.
+   ============================================================ */
+
+/* -------- Tiny helpers -------- */
+const $  = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+const el = (tag, attrs = {}, ...kids) => {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === 'class') e.className = v;
+    else if (k === 'html') e.innerHTML = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else if (v === true) e.setAttribute(k, '');
+    else if (v === false || v == null) {/* skip */}
+    else e.setAttribute(k, v);
+  }
+  for (const k of kids.flat()) {
+    if (k == null || k === false) continue;
+    e.appendChild(typeof k === 'string' ? document.createTextNode(k) : k);
+  }
+  return e;
+};
+const fmtDate = (iso) => {
+  const d = new Date(iso);
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+};
+const fmtDateTime = (iso) => {
+  const d = new Date(iso);
+  return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+};
+const uid = () => 'p' + Math.random().toString(36).slice(2, 9);
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+function toast(msg, ms = 1800) {
+  const t = el('div', { class: 'toast' }, msg);
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 220); }, ms);
+}
+
+/* -------- App state -------- */
+const STORAGE_KEY = 'linkanddink.popup.v1';
+
+const defaultState = () => ({
+  version: 1,
+  current: null,             // current event id (null = no live event)
+  events: {},                // id -> event object
+  history: [],               // ordered ids of completed events
+  knownPlayers: [],          // canonical roster across events (deduped names)
+  ui: { lastScreen: 'home' },
+});
+
+let state = loadState();
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    return { ...defaultState(), ...parsed };
+  } catch (e) {
+    console.warn('Failed to load state, starting fresh', e);
+    return defaultState();
+  }
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    console.warn('Failed to save state', e);
+    toast('Could not save (storage full?)');
+  }
+}
+
+function currentEvent() { return state.current ? state.events[state.current] : null; }
+
+/* ============================================================
+   FORMAT ENGINES
+   Each format module must expose:
+     - id            (string)
+     - name          (string)
+     - description   (string)
+     - validCounts   (array of valid player counts, or fn(n)=>bool)
+     - generate(players, opts) -> { rounds: [{ matches: [{ court, teamA:[id,id], teamB:[id,id] }] }], pools? }
+     - standings(event) -> [{ playerId, wins, losses, pointsFor, pointsAgainst, diff, seed }]
+   ============================================================ */
+
+/* ----- Round-robin pairings (rotating partners) -----
+   For each player count we precompute a schedule where:
+   - Every player plays in (almost) every round
+   - Partner combinations are rotated to maximize mixing
+*/
+
+// Classic 4-player rotating partner RR (3 rounds, 1 court)
+function rr4(ids) {
+  const [a, b, c, d] = ids;
+  return [
+    [{ teamA: [a, b], teamB: [c, d] }],
+    [{ teamA: [a, c], teamB: [b, d] }],
+    [{ teamA: [a, d], teamB: [b, c] }],
+  ];
+}
+
+// 5-player RR with byes, 1 court — every round one player sits
+function rr5(ids) {
+  const [a, b, c, d, e] = ids;
+  return [
+    [{ teamA: [a, b], teamB: [c, d] }],   // e bye
+    [{ teamA: [a, c], teamB: [b, e] }],   // d bye
+    [{ teamA: [a, d], teamB: [c, e] }],   // b bye
+    [{ teamA: [a, e], teamB: [b, d] }],   // c bye
+    [{ teamA: [b, c], teamB: [d, e] }],   // a bye
+  ];
+}
+
+// 6-player RR, 2 courts when available, no byes
+function rr6(ids) {
+  const [a, b, c, d, e, f] = ids;
+  return [
+    [{ teamA: [a, b], teamB: [c, d] }],
+    [{ teamA: [a, c], teamB: [e, f] }],
+    [{ teamA: [a, d], teamB: [b, e] }],
+    [{ teamA: [a, e], teamB: [c, f] }],
+    [{ teamA: [a, f], teamB: [d, e] }],
+    [{ teamA: [b, c], teamB: [d, f] }],
+    [{ teamA: [b, f], teamB: [c, e] }],
+  ];
+}
+
+// 7-player RR — defer to generic doubles RR (gives broader partner coverage than a hand pattern)
+function rr7(ids) { return rrDoublesGeneric(ids); }
+
+// 8-player RR, 2 courts, 7 rounds (matches the 8-player template)
+function rr8(ids) {
+  const [a, b, c, d, e, f, g, h] = ids;
+  return [
+    [{ teamA: [a, e], teamB: [g, h] }, { teamA: [b, c], teamB: [f, d] }],
+    [{ teamA: [c, g], teamB: [e, h] }, { teamA: [a, b], teamB: [d, f] }],
+    [{ teamA: [c, b], teamB: [e, g] }, { teamA: [a, d], teamB: [f, h] }],
+    [{ teamA: [a, f], teamB: [c, e] }, { teamA: [b, h], teamB: [d, g] }],
+    [{ teamA: [e, b], teamB: [a, g] }, { teamA: [c, h], teamB: [d, f] }],
+    [{ teamA: [a, h], teamB: [f, g] }, { teamA: [b, d], teamB: [c, e] }],
+    [{ teamA: [a, c], teamB: [d, h] }, { teamA: [b, f], teamB: [e, g] }],
+  ];
+}
+
+// 9-player RR — defer to generic doubles RR (broader partner coverage)
+function rr9(ids) { return rrDoublesGeneric(ids); }
+
+/* Generic round-robin doubles for arbitrary even counts (10, 12, 14, 16...) */
+function rrDoublesGeneric(ids) {
+  const n = ids.length;
+  const isOdd = n % 2 === 1;
+  const arr = isOdd ? [...ids, '__BYE__'] : [...ids];
+  const m = arr.length;
+  const rounds = [];
+  // Standard circle method for singles RR; we then pair adjacent into doubles
+  for (let r = 0; r < m - 1; r++) {
+    const matches = [];
+    const pairings = [];
+    for (let i = 0; i < m / 2; i++) {
+      const a = arr[i];
+      const b = arr[m - 1 - i];
+      if (a !== '__BYE__' && b !== '__BYE__') pairings.push([a, b]);
+    }
+    // Convert "singles pairings" into doubles matches by pairing two singles-pairings into one match
+    for (let i = 0; i + 1 < pairings.length; i += 2) {
+      const [p1a, p1b] = pairings[i];
+      const [p2a, p2b] = pairings[i + 1];
+      // match: (p1a + p2a) vs (p1b + p2b)
+      matches.push({ teamA: [p1a, p2a], teamB: [p1b, p2b] });
+    }
+    if (matches.length) rounds.push(matches);
+    // Rotate (keep arr[0] fixed)
+    const fixed = arr[0];
+    const rest = arr.slice(1);
+    rest.unshift(rest.pop());
+    for (let i = 0; i < rest.length; i++) arr[i + 1] = rest[i];
+  }
+  return rounds;
+}
+
+const ROUND_ROBIN = {
+  id: 'round_robin',
+  name: 'Round Robin',
+  description: 'Rotating partners. Every player partners with every other player. Best for 4–9.',
+  icon: 'rr',
+  validCounts: [4, 5, 6, 7, 8, 9],
+  generate(players, opts = {}) {
+    const ids = players.map(p => p.id);
+    const courts = opts.courts || (players.length >= 6 ? 2 : 1);
+    let raw;
+    if (ids.length === 4) raw = rr4(ids);
+    else if (ids.length === 5) raw = rr5(ids);
+    else if (ids.length === 6) raw = rr6(ids);
+    else if (ids.length === 7) raw = rr7(ids);
+    else if (ids.length === 8) raw = rr8(ids);
+    else if (ids.length === 9) raw = rr9(ids);
+    else raw = rrDoublesGeneric(ids);
+    // Assign courts within each round (cap at courts setting)
+    const rounds = raw.map((roundMatches, ri) => ({
+      number: ri + 1,
+      label: `Round ${ri + 1}`,
+      matches: roundMatches.slice(0, courts).map((m, ci) => ({
+        id: `r${ri + 1}c${ci + 1}`,
+        round: ri + 1,
+        court: ci + 1,
+        teamA: m.teamA,
+        teamB: m.teamB,
+        scoreA: null,
+        scoreB: null,
+        complete: false,
+      })),
+    }));
+    return { rounds };
+  },
+  standings(event) { return computeRRStandings(event); },
+};
+
+const POOL_PLAYOFF = {
+  id: 'pool_playoff',
+  name: 'Pool + Playoff',
+  description: 'Pools of 4–5 round robin, then seeded playoff bracket. Best for 10+.',
+  icon: 'pp',
+  validCounts: [10, 12, 16, 17, 18],
+  generate(players, opts = {}) {
+    const courts = opts.courts || Math.max(2, Math.floor(players.length / 4));
+    const ids = players.map(p => p.id);
+    const n = ids.length;
+    // Pool sizing rules:
+    //   10 -> 2 pools of 5
+    //   12 -> 3 pools of 4
+    //   16 -> 4 pools of 4
+    //   17 -> 1 pool of 9 + 1 pool of 8 (mirrors your 17-person template)
+    //   18 -> 2 pools of 9 (mirrors your 18-person template's structure)
+    const pools = [];
+    if (n === 10)      { pools.push(ids.slice(0, 5), ids.slice(5)); }
+    else if (n === 12) { pools.push(ids.slice(0,4), ids.slice(4,8), ids.slice(8,12)); }
+    else if (n === 16) { pools.push(ids.slice(0,4), ids.slice(4,8), ids.slice(8,12), ids.slice(12,16)); }
+    else if (n === 17) { pools.push(ids.slice(0, 9), ids.slice(9)); }
+    else if (n === 18) { pools.push(ids.slice(0, 9), ids.slice(9)); }
+    else {
+      // Generic: 4–5 per pool
+      const poolSize = n % 4 === 0 ? 4 : 5;
+      for (let i = 0; i < n; i += poolSize) pools.push(ids.slice(i, i + poolSize));
+    }
+
+    // Generate RR within each pool
+    const rounds = [];
+    let courtCursor = 0;
+    pools.forEach((poolIds, pi) => {
+      const sub = ROUND_ROBIN.generate(poolIds.map(id => ({ id })), { courts: 99 });
+      sub.rounds.forEach((rd, ri) => {
+        // Tag matches with their pool name
+        rd.matches.forEach(m => { m.pool = String.fromCharCode(65 + pi); m.id = `p${pi+1}r${ri+1}m${m.court}`; });
+        if (!rounds[ri]) rounds[ri] = { number: ri + 1, label: `Pool Round ${ri + 1}`, matches: [] };
+        rounds[ri].matches.push(...rd.matches);
+      });
+    });
+    // Re-assign court numbers across the cross-pool round so we honor `courts`
+    rounds.forEach(rd => {
+      rd.matches.forEach((m, idx) => { m.court = (idx % courts) + 1; });
+    });
+
+    // Playoff slots are placeholders — generated after pool play completes
+    return { rounds, pools, hasPlayoffs: true };
+  },
+  standings(event) { return computePoolStandings(event); },
+};
+
+const FORMATS = { round_robin: ROUND_ROBIN, pool_playoff: POOL_PLAYOFF };
+
+/* ============================================================
+   PLAYOFF BRACKET BUILDER
+   Rule = TOP-DOWN partner pairing (matches the original
+   Apr-29 Ladder Popup templates that have actually been run live):
+     • Smaller fields (10p): Top 4 advance → single Championship game
+         (seed 1 + 2)  vs  (seed 3 + 4)
+     • Larger fields (12 / 16 / 17 / 18p): Top 8 advance → 2 semis + Final
+         SF1:  (seed 1 + 2)  vs  (seed 7 + 8)
+         SF2:  (seed 3 + 4)  vs  (seed 5 + 6)
+         Final: SF1 winner vs SF2 winner
+   Top seeds always partner together; bottom qualifiers partner together.
+   The 12-player template's "A1 & A2 vs C1 & B3" pairing collapses to
+   overall seeds (1+2) vs (7+8) once you flatten the ladder pools.
+   ============================================================ */
+
+function rrMatchesOnly(event) {
+  return event.rounds.flatMap(r => r.matches).filter(m => !m.isPlayoff);
+}
+
+function computeOverallSeeding(event) {
+  // Ranks every player by their COMBINED RR/pool stats (ignores playoff matches).
+  // Used as the source of truth for the playoff bracket draw.
+  const playerIds = event.players.map(p => p.id);
+  const matches = rrMatchesOnly(event);
+  const stats = tallyMatches(matches, playerIds);
+  return rankStats(Object.values(stats));
+}
+
+function playoffQualifierCount(event) {
+  // 10p → top 4 (Championship game). 12+ → top 8 (Semis + Final).
+  return event.players.length <= 10 ? 4 : 8;
+}
+
+function defaultPlayoffPairing(event) {
+  // Returns the top-down DEFAULT pairing as an array of teams (each a [id, id] pair),
+  // in match-order: [SF1.teamA, SF1.teamB, SF2.teamA, SF2.teamB] — or for top-4:
+  // [Championship.teamA, Championship.teamB]. Returns null if not enough qualifiers.
+  const ranked = computeOverallSeeding(event);
+  const qCount = playoffQualifierCount(event);
+  const top = ranked.slice(0, qCount);
+  if (top.length < qCount) return null;
+  if (qCount === 4) {
+    return [
+      [top[0].id, top[1].id], // seeds 1 + 2
+      [top[2].id, top[3].id], // seeds 3 + 4
+    ];
+  }
+  return [
+    [top[0].id, top[1].id], // SF1.teamA — seeds 1 + 2 (top seeds together)
+    [top[6].id, top[7].id], // SF1.teamB — seeds 7 + 8
+    [top[2].id, top[3].id], // SF2.teamA — seeds 3 + 4
+    [top[4].id, top[5].id], // SF2.teamB — seeds 5 + 6
+  ];
+}
+
+function buildPlayoffSemis(event, customPairing = null) {
+  // `customPairing` lets callers supply player-picked partners. If null, falls back
+  // to the top-down default. Either way the structure of match cards is the same.
+  const pairing = customPairing || defaultPlayoffPairing(event);
+  if (!pairing) return null;
+  const qCount = pairing.length === 2 ? 4 : 8;
+  const roundNum = event.rounds.length + 1;
+
+  if (qCount === 4) {
+    return {
+      number: roundNum,
+      label: 'Championship',
+      isPlayoff: true,
+      matches: [{
+        id: 'po-final', round: roundNum, court: 1,
+        teamA: pairing[0],
+        teamB: pairing[1],
+        isPlayoff: true, playoffSlot: 'final',
+        scoreA: null, scoreB: null, complete: false,
+      }],
+    };
+  }
+
+  return {
+    number: roundNum,
+    label: 'Semifinals',
+    isPlayoff: true,
+    matches: [
+      {
+        id: 'po-sf1', round: roundNum, court: 1,
+        teamA: pairing[0], teamB: pairing[1],
+        isPlayoff: true, playoffSlot: 'sf1',
+        scoreA: null, scoreB: null, complete: false,
+      },
+      {
+        id: 'po-sf2', round: roundNum, court: 2,
+        teamA: pairing[2], teamB: pairing[3],
+        isPlayoff: true, playoffSlot: 'sf2',
+        scoreA: null, scoreB: null, complete: false,
+      },
+    ],
+  };
+}
+
+function buildPlayoffFinalIfReady(event) {
+  // Returns a Final round if both semis exist + are LOCKED + no Final yet. Else null.
+  const sfRound = event.rounds.find(r => r.label === 'Semifinals');
+  if (!sfRound) return null;
+  const sf1 = sfRound.matches.find(m => m.playoffSlot === 'sf1');
+  const sf2 = sfRound.matches.find(m => m.playoffSlot === 'sf2');
+  if (!sf1 || !sf2 || !sf1.complete || !sf2.complete) return null;
+  if (event.rounds.some(r => r.label === 'Final')) return null;
+  const winnerOf = (m) => (Number(m.scoreA) > Number(m.scoreB) ? m.teamA : m.teamB);
+  const roundNum = event.rounds.length + 1;
+  return {
+    number: roundNum,
+    label: 'Final',
+    isPlayoff: true,
+    matches: [{
+      id: 'po-final', round: roundNum, court: 1,
+      teamA: winnerOf(sf1),
+      teamB: winnerOf(sf2),
+      isPlayoff: true, playoffSlot: 'final',
+      scoreA: null, scoreB: null, complete: false,
+    }],
+  };
+}
+
+/* -------- Standings calculators -------- */
+
+function tallyMatches(matches, playerIds) {
+  const stats = {};
+  playerIds.forEach(id => stats[id] = { id, wins: 0, losses: 0, pointsFor: 0, pointsAgainst: 0, played: 0 });
+  matches.forEach(m => {
+    // Playoff matches are NOT counted in RR/standings tallies — keeps seeding stable
+    // once the bracket has been drawn, and prevents the SF/Final from re-ranking players.
+    if (m.isPlayoff) return;
+    // Count any match where both scores are entered and not tied.
+    // m.complete (locked) is no longer required — standings update live as scores are typed.
+    if (m.scoreA == null || m.scoreB == null) return;
+    if (String(m.scoreA) === '' || String(m.scoreB) === '') return;
+    if (Number(m.scoreA) === Number(m.scoreB)) return;
+    const aWin = m.scoreA > m.scoreB;
+    m.teamA.forEach(id => {
+      if (!stats[id]) return;
+      stats[id].pointsFor += Number(m.scoreA);
+      stats[id].pointsAgainst += Number(m.scoreB);
+      stats[id].played += 1;
+      if (aWin) stats[id].wins += 1; else stats[id].losses += 1;
+    });
+    m.teamB.forEach(id => {
+      if (!stats[id]) return;
+      stats[id].pointsFor += Number(m.scoreB);
+      stats[id].pointsAgainst += Number(m.scoreA);
+      stats[id].played += 1;
+      if (!aWin) stats[id].wins += 1; else stats[id].losses += 1;
+    });
+  });
+  return stats;
+}
+
+function rankStats(statsArray) {
+  // Sort by wins desc, then point diff desc, then PF desc
+  const sorted = [...statsArray].sort((a, b) =>
+    (b.wins - a.wins) ||
+    ((b.pointsFor - b.pointsAgainst) - (a.pointsFor - a.pointsAgainst)) ||
+    (b.pointsFor - a.pointsFor)
+  );
+  sorted.forEach((s, i) => { s.diff = s.pointsFor - s.pointsAgainst; s.seed = i + 1; });
+  return sorted;
+}
+
+function computeRRStandings(event) {
+  const playerIds = event.players.map(p => p.id);
+  const matches = event.rounds.flatMap(r => r.matches);
+  const stats = tallyMatches(matches, playerIds);
+  const arr = Object.values(stats);
+  return rankStats(arr);
+}
+
+function computePoolStandings(event) {
+  const playerIds = event.players.map(p => p.id);
+  const matches = event.rounds.flatMap(r => r.matches);
+  // Group standings by pool
+  const byPool = {};
+  matches.forEach(m => { byPool[m.pool] = byPool[m.pool] || []; byPool[m.pool].push(m); });
+  const poolMembers = {};
+  Object.entries(byPool).forEach(([pool, ms]) => {
+    const ids = new Set();
+    ms.forEach(m => { m.teamA.forEach(i => ids.add(i)); m.teamB.forEach(i => ids.add(i)); });
+    poolMembers[pool] = [...ids];
+  });
+  const allRanked = [];
+  Object.entries(poolMembers).forEach(([pool, ids]) => {
+    const stats = tallyMatches(byPool[pool], ids);
+    const ranked = rankStats(Object.values(stats));
+    ranked.forEach(r => { r.pool = pool; });
+    allRanked.push(...ranked);
+  });
+  return allRanked;
+}
+
+/* ============================================================
+   ROUTING + RENDER
+   ============================================================ */
+
+const SCREENS = ['home', 'setup', 'roster', 'schedule', 'partner-pick', 'standings', 'history', 'settings'];
+
+function go(screen) {
+  SCREENS.forEach(s => {
+    const el = document.getElementById('screen-' + s);
+    if (el) el.classList.toggle('active', s === screen);
+  });
+  $$('.nav-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.screen === screen);
+  });
+  state.ui.lastScreen = screen;
+  saveState();
+  render();
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+function render() {
+  const ev = currentEvent();
+
+  // Top bar event chip
+  const chip = $('#event-chip');
+  if (ev) {
+    chip.hidden = false;
+    chip.innerHTML = `<strong>${escapeHtml(ev.name || 'Event')}</strong> · ${ev.players.length}p`;
+  } else {
+    chip.hidden = true;
+  }
+
+  // Disable nav buttons that need an event/schedule
+  $$('.nav-btn').forEach(b => {
+    const need = b.dataset.needs;
+    if (!need) { b.disabled = false; return; }
+    if (need === 'event') b.disabled = !ev;
+    if (need === 'schedule') b.disabled = !ev || !ev.rounds || !ev.rounds.length;
+  });
+
+  // Render the active screen
+  const active = state.ui.lastScreen || 'home';
+  if (active === 'home')          renderHome();
+  if (active === 'setup')         renderSetup();
+  if (active === 'roster')        renderRoster();
+  if (active === 'schedule')      renderSchedule();
+  if (active === 'partner-pick')  renderPartnerPick();
+  if (active === 'standings')     renderStandings();
+  if (active === 'history')       renderHistory();
+  if (active === 'settings')      renderSettings();
+}
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+}
+
+/* -------- HOME -------- */
+function renderHome() {
+  const root = $('#screen-home');
+  root.innerHTML = '';
+  const ev = currentEvent();
+  const stack = el('div', { class: 'stack-lg' });
+
+  // Hero
+  const hero = el('div', { class: 'card-lift' },
+    el('div', { class: 'h1' }, 'Popup'),
+    el('div', { class: 'muted' }, 'Pickup tournaments, run from your pocket.')
+  );
+  stack.appendChild(hero);
+
+  if (ev) {
+    // Resume current event
+    const resume = el('div', { class: 'card-lift' },
+      el('div', { class: 'section-title' }, 'Live Event'),
+      el('div', { class: 'h2' }, ev.name || 'Untitled event'),
+      el('div', { class: 'muted', style: 'margin: 4px 0 14px' },
+        `${FORMATS[ev.format].name} · ${ev.players.length} players · ${ev.rounds?.length || 0} rounds`
+      ),
+      el('div', { class: 'row', style: 'gap:8px;' },
+        el('button', { class: 'btn btn-primary', style: 'flex:1', onclick: () => go('schedule') }, 'Resume'),
+        el('button', { class: 'btn', onclick: () => go('standings') }, 'Standings')
+      )
+    );
+    stack.appendChild(resume);
+  } else {
+    const start = el('div', { class: 'card-lift' },
+      el('div', { class: 'section-title' }, 'Start something'),
+      el('div', { class: 'h3', style: 'margin-bottom:10px' }, 'No live event'),
+      el('button', { class: 'btn btn-primary btn-block', onclick: () => go('setup') }, '+  New Event')
+    );
+    stack.appendChild(start);
+  }
+
+  // History preview
+  if (state.history.length) {
+    const histBox = el('div', { class: 'card' },
+      el('div', { class: 'row-between', style: 'margin-bottom:10px' },
+        el('div', { class: 'section-title', style: 'margin:0' }, 'Recent Events'),
+        el('button', { class: 'btn btn-sm btn-ghost', onclick: () => go('history') }, 'See all')
+      ),
+      ...state.history.slice(-3).reverse().map(id => {
+        const e = state.events[id];
+        if (!e) return null;
+        return el('div', { class: 'session-row', style: 'margin-bottom:8px;' },
+          el('div', {},
+            el('div', { class: 'who' }, e.name || 'Event'),
+            el('div', { class: 'when' }, `${fmtDate(e.completedAt || e.createdAt)} · ${e.players.length}p`)
+          ),
+          el('div', { class: 'pill' }, FORMATS[e.format]?.name || e.format)
+        );
+      })
+    );
+    stack.appendChild(histBox);
+  }
+
+  root.appendChild(stack);
+}
+
+/* -------- SETUP -------- */
+function renderSetup() {
+  const root = $('#screen-setup');
+  root.innerHTML = '';
+  const draft = state.draft || (state.draft = {
+    name: '',
+    format: 'round_robin',
+    playerCount: 8,
+    courts: 2,
+    sponsor: '',
+    pot: '',
+  });
+
+  const stack = el('div', { class: 'stack-lg' });
+
+  stack.appendChild(el('div', {},
+    el('div', { class: 'h1' }, 'New Event'),
+    el('div', { class: 'muted' }, 'Two minutes to live.')
+  ));
+
+  // Event name
+  stack.appendChild(el('div', { class: 'card' },
+    el('label', { class: 'label' }, 'Event name'),
+    el('input', {
+      class: 'input', type: 'text', placeholder: 'Tuesday Pot Night · Wk 1',
+      value: draft.name,
+      oninput: (e) => { draft.name = e.target.value; saveState(); }
+    })
+  ));
+
+  // Format picker
+  const formatBox = el('div', { class: 'card' },
+    el('label', { class: 'label' }, 'Format'),
+    el('div', { class: 'stack' },
+      ...Object.values(FORMATS).map(f => {
+        const card = el('div', { class: 'format-card' + (draft.format === f.id ? ' selected' : '') },
+          el('div', { class: 'format-icon' },
+            f.id === 'round_robin'
+              ? svgIcon('rr')
+              : svgIcon('pp')
+          ),
+          el('div', {},
+            el('div', { class: 'format-name' }, f.name),
+            el('div', { class: 'format-desc' }, f.description),
+            el('div', { class: 'format-counts' }, 'Player counts: ' + f.validCounts.join(', '))
+          )
+        );
+        card.onclick = () => {
+          draft.format = f.id;
+          // If current count isn't valid for this format, snap to first valid count
+          if (!f.validCounts.includes(draft.playerCount)) draft.playerCount = f.validCounts[0];
+          saveState(); renderSetup();
+        };
+        return card;
+      })
+    )
+  );
+  stack.appendChild(formatBox);
+
+  // Player count picker
+  const fmt = FORMATS[draft.format];
+  stack.appendChild(el('div', { class: 'card' },
+    el('label', { class: 'label' }, 'Players'),
+    el('div', { class: 'picker-grid' },
+      ...fmt.validCounts.map(c => {
+        const tile = el('div', { class: 'picker-tile' + (draft.playerCount === c ? ' selected' : '') },
+          el('div', {}, String(c)),
+          el('small', {}, c === 4 ? 'mini' : c <= 9 ? 'social' : 'ladder')
+        );
+        tile.onclick = () => { draft.playerCount = c; saveState(); renderSetup(); };
+        return tile;
+      })
+    )
+  ));
+
+  // Courts (1–8, matches real Pot Night venue capacity)
+  stack.appendChild(el('div', { class: 'card' },
+    el('label', { class: 'label' }, 'Courts available'),
+    el('div', { class: 'picker-grid-4' },
+      ...[1, 2, 3, 4, 5, 6, 7, 8].map(c => {
+        const tile = el('div', { class: 'picker-tile' + (draft.courts === c ? ' selected' : '') }, String(c));
+        tile.onclick = () => { draft.courts = c; saveState(); renderSetup(); };
+        return tile;
+      })
+    )
+  ));
+
+  // Sponsor (optional)
+  stack.appendChild(el('div', { class: 'card' },
+    el('label', { class: 'label' }, 'Sponsor (optional)'),
+    el('input', {
+      class: 'input', type: 'text', placeholder: 'JOOLA',
+      value: draft.sponsor,
+      oninput: (e) => { draft.sponsor = e.target.value; saveState(); }
+    }),
+    el('label', { class: 'label', style: 'margin-top:14px' }, 'Pot ($, optional)'),
+    el('input', {
+      class: 'input', type: 'text', inputmode: 'decimal', placeholder: '200',
+      value: draft.pot,
+      oninput: (e) => { draft.pot = e.target.value; saveState(); }
+    })
+  ));
+
+  stack.appendChild(el('button', {
+    class: 'btn btn-primary btn-block',
+    onclick: startEvent,
+  }, 'Continue to Roster  →'));
+
+  root.appendChild(stack);
+}
+
+function svgIcon(kind) {
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('width', '20'); svg.setAttribute('height', '20');
+  svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', 'currentColor'); svg.setAttribute('stroke-width', '2');
+  svg.setAttribute('stroke-linecap', 'round'); svg.setAttribute('stroke-linejoin', 'round');
+  if (kind === 'rr') {
+    const c = document.createElementNS(ns, 'circle'); c.setAttribute('cx','12'); c.setAttribute('cy','12'); c.setAttribute('r','9'); svg.appendChild(c);
+    const p = document.createElementNS(ns, 'path'); p.setAttribute('d','M12 3v18 M3 12h18 M5 5l14 14 M19 5L5 19'); svg.appendChild(p);
+  } else if (kind === 'pp') {
+    const r = document.createElementNS(ns, 'rect'); r.setAttribute('x','3'); r.setAttribute('y','5'); r.setAttribute('width','7'); r.setAttribute('height','14'); r.setAttribute('rx','2'); svg.appendChild(r);
+    const r2 = document.createElementNS(ns, 'rect'); r2.setAttribute('x','14'); r2.setAttribute('y','5'); r2.setAttribute('width','7'); r2.setAttribute('height','14'); r2.setAttribute('rx','2'); svg.appendChild(r2);
+    const p = document.createElementNS(ns, 'path'); p.setAttribute('d','M10 12h4'); svg.appendChild(p);
+  }
+  return svg;
+}
+
+function startEvent() {
+  const draft = state.draft;
+  if (!draft) return;
+  const id = 'e' + Date.now().toString(36);
+  const players = Array.from({ length: draft.playerCount }, (_, i) => ({
+    id: uid(),
+    name: '',
+    seat: i + 1,
+  }));
+  const event = {
+    id,
+    name: draft.name || `Pot Night · ${fmtDate(new Date().toISOString())}`,
+    format: draft.format,
+    courts: draft.courts,
+    sponsor: draft.sponsor || '',
+    pot: draft.pot || '',
+    players,
+    rounds: [],
+    pools: null,
+    createdAt: new Date().toISOString(),
+    completedAt: null,
+  };
+  state.events[id] = event;
+  state.current = id;
+  saveState();
+  go('roster');
+}
+
+/* -------- ROSTER -------- */
+function renderRoster() {
+  const root = $('#screen-roster');
+  root.innerHTML = '';
+  const ev = currentEvent();
+  if (!ev) {
+    root.appendChild(emptyState('No live event', 'Start a new event to add players.', () => go('setup'), '+ New Event'));
+    return;
+  }
+
+  const stack = el('div', { class: 'stack-lg' });
+
+  stack.appendChild(el('div', {},
+    el('div', { class: 'h1' }, 'Roster'),
+    el('div', { class: 'muted' }, `${ev.players.length} seats · ${ev.players.filter(p=>p.name).length} named`)
+  ));
+
+  // Sponsor banner if set
+  if (ev.sponsor || ev.pot) {
+    stack.appendChild(el('div', { class: 'sponsor-banner' },
+      el('div', {},
+        el('div', { class: 'label' }, 'Sponsor'),
+        el('div', { class: 'name' }, ev.sponsor || '—')
+      ),
+      ev.pot ? el('div', { class: 'pot' }, '$' + ev.pot) : el('div', {})
+    ));
+  }
+
+  // Quick-add from known players
+  const unknown = state.knownPlayers.filter(n => !ev.players.some(p => p.name?.toLowerCase() === n.toLowerCase()));
+  if (unknown.length) {
+    const quickRow = el('div', { class: 'card' },
+      el('div', { class: 'section-title', style: 'margin:0 0 8px' }, 'Quick add from previous events'),
+      el('div', { style: 'display:flex; flex-wrap:wrap; gap:6px;' },
+        ...unknown.slice(0, 24).map(name => {
+          const b = el('button', { class: 'btn btn-sm btn-ghost' }, '+ ' + name);
+          b.onclick = () => {
+            const empty = ev.players.find(p => !p.name);
+            if (empty) { empty.name = name; saveState(); renderRoster(); }
+            else toast('All seats filled');
+          };
+          return b;
+        })
+      )
+    );
+    stack.appendChild(quickRow);
+  }
+
+  const list = el('div', { class: 'stack' },
+    ...ev.players.map((p, i) => {
+      const row = el('div', { class: 'player-row' },
+        el('div', { class: 'player-num' }, String(i + 1)),
+        el('input', {
+          class: 'input', type: 'text', placeholder: 'Player ' + (i + 1),
+          value: p.name,
+          oninput: (e) => { p.name = e.target.value; saveState(); }
+        }),
+        el('button', { class: 'btn-icon', title: 'Clear', onclick: () => { p.name = ''; saveState(); renderRoster(); } },
+          (() => { const s = el('span', { html: '&times;' }); return s; })()
+        )
+      );
+      return row;
+    })
+  );
+  stack.appendChild(list);
+
+  // Action: generate schedule
+  const ready = ev.players.every(p => (p.name || '').trim().length > 0);
+  const actions = el('div', { class: 'stack' },
+    el('button', {
+      class: 'btn btn-primary btn-block',
+      onclick: generateSchedule,
+      disabled: !ready,
+    }, ready ? 'Generate Schedule  →' : `Add names for all ${ev.players.length} players`),
+    el('button', { class: 'btn btn-ghost btn-block', onclick: () => go('home') }, 'Save & exit')
+  );
+  stack.appendChild(actions);
+
+  root.appendChild(stack);
+}
+
+function emptyState(title, body, onAction, actionLabel) {
+  return el('div', { class: 'empty' },
+    el('div', { class: 'empty-icon' }, '·'),
+    el('div', { class: 'h2' }, title),
+    el('div', { class: 'muted', style: 'margin: 6px 0 16px' }, body),
+    onAction ? el('button', { class: 'btn btn-primary', onclick: onAction }, actionLabel) : null
+  );
+}
+
+function generateSchedule() {
+  const ev = currentEvent();
+  if (!ev) return;
+  const fmt = FORMATS[ev.format];
+  const result = fmt.generate(ev.players, { courts: ev.courts });
+  ev.rounds = result.rounds;
+  ev.pools = result.pools || null;
+  ev.hasPlayoffs = !!result.hasPlayoffs;
+  // Track names in known players
+  ev.players.forEach(p => {
+    if (p.name && !state.knownPlayers.includes(p.name)) state.knownPlayers.push(p.name);
+  });
+  saveState();
+  go('schedule');
+}
+
+/* -------- SCHEDULE -------- */
+function renderSchedule() {
+  const root = $('#screen-schedule');
+  root.innerHTML = '';
+  const ev = currentEvent();
+  if (!ev) {
+    root.appendChild(emptyState('No live event', 'Start a new event to play.', () => go('setup'), '+ New Event'));
+    return;
+  }
+  if (!ev.rounds || !ev.rounds.length) {
+    root.appendChild(emptyState('No schedule yet', 'Finish the roster to generate the schedule.', () => go('roster'), 'Go to Roster'));
+    return;
+  }
+
+  const stack = el('div', { class: 'stack-lg' });
+
+  const totalMatches = ev.rounds.flatMap(r => r.matches).length;
+  const doneMatches = ev.rounds.flatMap(r => r.matches).filter(m => m.complete).length;
+  const scoredMatches = ev.rounds.flatMap(r => r.matches).filter(m => hasBothScores(m)).length;
+
+  stack.appendChild(el('div', {},
+    el('div', { class: 'h1' }, 'Schedule'),
+    el('div', { class: 'muted' },
+      `${doneMatches} / ${totalMatches} locked` +
+      (scoredMatches > doneMatches ? `  ·  ${scoredMatches - doneMatches} scored, awaiting lock` : '')
+    )
+  ));
+
+  if (ev.sponsor || ev.pot) {
+    stack.appendChild(el('div', { class: 'sponsor-banner' },
+      el('div', {},
+        el('div', { class: 'label' }, 'Sponsor'),
+        el('div', { class: 'name' }, ev.sponsor || '—')
+      ),
+      ev.pot ? el('div', { class: 'pot' }, '$' + ev.pot) : el('div', {})
+    ));
+  }
+
+  // Render rounds
+  ev.rounds.forEach((round, idx) => {
+    const roundDone = round.matches.every(m => m.complete);
+    const isPoolRound = (round.label || '').toLowerCase().includes('pool');
+    const isPlayoffRound = !!round.isPlayoff;
+    const lockedCount = round.matches.filter(m => m.complete).length;
+    const eyebrow = isPlayoffRound ? (round.label || 'Playoff').toUpperCase()
+                  : isPoolRound ? 'Pool Round'
+                  : 'Round';
+    const header = el('div', {
+        class: 'round-header' + (idx === 0 ? ' first' : '') + (isPlayoffRound ? ' playoff' : '')
+      },
+      el('div', { class: 'round-number' }, isPlayoffRound ? (round.label === 'Final' || round.label === 'Championship' ? 'F' : 'SF') : String(round.number)),
+      el('div', { class: 'round-meta' },
+        el('div', { class: 'round-eyebrow' }, eyebrow),
+        el('div', { class: 'round-sub' }, `${round.matches.length} ${round.matches.length === 1 ? 'court' : 'courts'} live`)
+      ),
+      el('span', { class: 'pill ' + (roundDone ? 'pill-done' : 'pill-warn') },
+        roundDone ? 'Complete' : `${lockedCount}/${round.matches.length} locked`)
+    );
+    stack.appendChild(header);
+    round.matches.forEach(m => stack.appendChild(matchCard(ev, m)));
+  });
+
+  // ----- Footer / next-step action -----
+  const allMatches = ev.rounds.flatMap(r => r.matches);
+  const rrMatches = allMatches.filter(m => !m.isPlayoff);
+  const playoffRounds = ev.rounds.filter(r => r.isPlayoff);
+  const rrDone = rrMatches.length > 0 && rrMatches.every(m => m.complete);
+  const allDone = allMatches.every(m => m.complete);
+
+  const sfRound = ev.rounds.find(r => r.label === 'Semifinals');
+  const finalRound = ev.rounds.find(r => r.label === 'Final' || r.label === 'Championship');
+  const semisLocked = sfRound && sfRound.matches.every(m => m.complete);
+
+  if (ev.hasPlayoffs && rrDone && !playoffRounds.length) {
+    // RR done, bracket not yet drawn → go to Partner-Pick screen so players can swap pairings
+    const q = playoffQualifierCount(ev);
+    stack.appendChild(el('button', {
+      class: 'btn btn-primary btn-block',
+      onclick: startPartnerPick,
+    }, `Pick Playoff Partners (Top ${q})  →`));
+  } else if (ev.hasPlayoffs && semisLocked && !finalRound) {
+    // Both semis locked, final not yet drawn → offer to generate the final
+    stack.appendChild(el('button', {
+      class: 'btn btn-primary btn-block',
+      onclick: generatePlayoffFinal,
+    }, 'Generate Final  →'));
+  } else if (allDone) {
+    stack.appendChild(el('button', {
+      class: 'btn btn-primary btn-block',
+      onclick: () => go('standings'),
+    }, 'See Final Standings  →'));
+  }
+
+  root.appendChild(stack);
+}
+
+/* -------- Playoff bracket handlers -------- */
+
+function startPartnerPick() {
+  // Opens the Partner-Pick screen with the top-down default pre-loaded.
+  // Players can swap any two qualifiers before locking the bracket.
+  const ev = currentEvent();
+  if (!ev) return;
+  const pairing = defaultPlayoffPairing(ev);
+  if (!pairing) {
+    toast(`Need top ${playoffQualifierCount(ev)} in standings first`);
+    return;
+  }
+  ev.playoffDraft = {
+    teams: pairing.map(t => [...t]),  // deep copy
+    selected: null,                    // player id currently selected for swap
+  };
+  saveState();
+  go('partner-pick');
+}
+
+function generatePlayoffFinal() {
+  const ev = currentEvent();
+  if (!ev) return;
+  const final = buildPlayoffFinalIfReady(ev);
+  if (!final) {
+    toast('Lock both semifinal scores first');
+    return;
+  }
+  ev.rounds.push(final);
+  saveState();
+  toast('Final drawn');
+  renderSchedule();
+}
+
+/* -------- PARTNER PICK SCREEN --------
+   Free-swap UX: tap any two qualifier tiles to swap them between team slots.
+   Default = top-down (1+2)(7+8)(3+4)(5+6); but the players choose. */
+
+function renderPartnerPick() {
+  const root = $('#screen-partner-pick');
+  root.innerHTML = '';
+  const ev = currentEvent();
+  if (!ev) {
+    root.appendChild(emptyState('No event', 'Start a new event first.', () => go('home'), 'Home'));
+    return;
+  }
+  if (!ev.playoffDraft) {
+    root.appendChild(emptyState('No bracket draft', 'Finish round-robin play first.', () => go('schedule'), 'Back to Schedule'));
+    return;
+  }
+
+  const seeds = computeOverallSeeding(ev);
+  const seedOf = (id) => seeds.find(s => s.id === id)?.seed ?? '?';
+  const nameOf = (id) => ev.players.find(p => p.id === id)?.name || '?';
+  const stack = el('div', { class: 'stack-lg' });
+
+  // Header
+  const isTop4 = ev.playoffDraft.teams.length === 2;
+  const totalQualifiers = isTop4 ? 4 : 8;
+  stack.appendChild(el('div', {},
+    el('div', { class: 'h1' }, 'Pick Playoff Partners'),
+    el('div', { class: 'muted' },
+      `Top ${totalQualifiers} qualified. Default is top-down — tap any two players to swap them.`
+    )
+  ));
+
+  // Selection hint
+  if (ev.playoffDraft.selected) {
+    stack.appendChild(el('div', { class: 'pick-hint' },
+      `Selected: ${nameOf(ev.playoffDraft.selected)} (Seed ${seedOf(ev.playoffDraft.selected)}). Tap another player to swap.`
+    ));
+  } else {
+    stack.appendChild(el('div', { class: 'pick-hint pick-hint-quiet' },
+      'Tap a player to begin swapping.'
+    ));
+  }
+
+  // Render team slots
+  const slotLabels = isTop4
+    ? ['Championship — Team A', 'Championship — Team B']
+    : ['Semi 1 — Team A (Court 1)', 'Semi 1 — Team B (Court 1)',
+       'Semi 2 — Team A (Court 2)', 'Semi 2 — Team B (Court 2)'];
+
+  ev.playoffDraft.teams.forEach((team, ti) => {
+    const slot = el('div', { class: 'pick-team' },
+      el('div', { class: 'pick-team-label' }, slotLabels[ti]),
+      el('div', { class: 'pick-team-tiles' },
+        ...team.map((pid) => {
+          const isSelected = ev.playoffDraft.selected === pid;
+          return el('button', {
+            class: 'pick-tile' + (isSelected ? ' selected' : ''),
+            onclick: () => onPartnerPickTap(pid),
+          },
+            el('div', { class: 'pick-seed' }, `Seed ${seedOf(pid)}`),
+            el('div', { class: 'pick-name' }, nameOf(pid))
+          );
+        })
+      )
+    );
+    stack.appendChild(slot);
+  });
+
+  // Footer actions
+  stack.appendChild(el('div', { class: 'row', style: 'gap:8px; margin-top:18px' },
+    el('button', { class: 'btn', style: 'flex:1', onclick: resetPartnerPick }, 'Reset to default'),
+    el('button', { class: 'btn btn-primary', style: 'flex:2', onclick: confirmPartnerPick },
+      isTop4 ? 'Lock & Start Final  →' : 'Lock & Start Semifinals  →')
+  ));
+  stack.appendChild(el('button', { class: 'btn btn-ghost btn-block', onclick: cancelPartnerPick }, 'Back to Schedule'));
+
+  root.appendChild(stack);
+}
+
+function onPartnerPickTap(playerId) {
+  const ev = currentEvent();
+  if (!ev || !ev.playoffDraft) return;
+  const d = ev.playoffDraft;
+  if (!d.selected) {
+    d.selected = playerId;
+  } else if (d.selected === playerId) {
+    d.selected = null;  // tap same tile = deselect
+  } else {
+    // Swap the two players wherever they currently sit in the teams array
+    const idA = d.selected;
+    const idB = playerId;
+    d.teams.forEach(team => {
+      for (let i = 0; i < team.length; i++) {
+        if (team[i] === idA) team[i] = idB;
+        else if (team[i] === idB) team[i] = idA;
+      }
+    });
+    d.selected = null;
+  }
+  saveState();
+  renderPartnerPick();
+}
+
+function resetPartnerPick() {
+  const ev = currentEvent();
+  if (!ev) return;
+  const pairing = defaultPlayoffPairing(ev);
+  if (!pairing) return;
+  ev.playoffDraft = { teams: pairing.map(t => [...t]), selected: null };
+  saveState();
+  toast('Reset to top-down default');
+  renderPartnerPick();
+}
+
+function cancelPartnerPick() {
+  const ev = currentEvent();
+  if (ev) { ev.playoffDraft = null; saveState(); }
+  go('schedule');
+}
+
+function confirmPartnerPick() {
+  const ev = currentEvent();
+  if (!ev || !ev.playoffDraft) return;
+  const semis = buildPlayoffSemis(ev, ev.playoffDraft.teams);
+  if (!semis) { toast('Could not build bracket'); return; }
+  ev.rounds.push(semis);
+  ev.playoffDraft = null;  // clear after locking
+  saveState();
+  toast(semis.label + ' locked');
+  go('schedule');
+}
+
+function matchCard(ev, m) {
+  const nameOf = (id) => ev.players.find(p => p.id === id)?.name || '?';
+  const locked = !!m.complete;
+
+  // Court header — big court number, optional pool tag
+  const courtHead = el('div', { class: 'match-court' },
+    m.pool ? el('span', { class: 'pool-tag' }, 'Pool ' + m.pool) : null,
+    el('span', { class: 'court-eyebrow' }, 'Court'),
+    el('span', { class: 'court-num' }, String(m.court))
+  );
+
+  const teamARow = el('div', { class: 'team-row' },
+    el('div', { class: 'names' }, m.teamA.map(nameOf).join(' · ')),
+    null  // score cell placeholder, set below
+  );
+  const teamBRow = el('div', { class: 'team-row' },
+    el('div', { class: 'names' }, m.teamB.map(nameOf).join(' · ')),
+    null
+  );
+
+  // Score cells: input if unlocked, display if locked
+  const makeScoreInput = (which) => el('input', {
+    class: 'input score score-input', type: 'number', inputmode: 'numeric', min: 0, max: 99,
+    value: m['score' + which] ?? '', placeholder: '–',
+    oninput: (e) => {
+      const v = e.target.value === '' ? null : Number(e.target.value);
+      m['score' + which] = v;
+      saveState();
+      updateMatchVisualState(card, m);
+    }
+  });
+  const aScoreCell = locked
+    ? el('div', { class: 'score-display' }, String(m.scoreA))
+    : makeScoreInput('A');
+  const bScoreCell = locked
+    ? el('div', { class: 'score-display' }, String(m.scoreB))
+    : makeScoreInput('B');
+  teamARow.appendChild(aScoreCell);
+  teamBRow.appendChild(bScoreCell);
+
+  // Lock button (or Edit if already locked)
+  const actionRow = locked
+    ? el('div', { style: 'margin-top:12px; display:flex; justify-content:space-between; align-items:center;' },
+        el('span', { class: 'pill pill-lime' }, '✓ Locked'),
+        el('button', {
+          class: 'btn btn-sm btn-ghost',
+          onclick: () => { m.complete = false; saveState(); renderSchedule(); }
+        }, 'Edit')
+      )
+    : el('div', { style: 'margin-top:14px;' },
+        el('button', {
+          class: 'btn btn-primary btn-block btn-sm confirm-btn',
+          disabled: !canLock(m),
+          onclick: (e) => lockMatch(m, card)
+        }, 'Lock Match')
+      );
+
+  const card = el('div', { class: 'match' + (locked ? ' locked' : ''), 'data-mid': m.id },
+    el('div', { class: 'match-head' },
+      courtHead,
+      locked
+        ? el('span', { class: 'pill pill-lime' }, 'Final')
+        : el('span', { class: 'pill pill-warn' }, hasBothScores(m) ? 'Ready to lock' : 'Open')
+    ),
+    el('div', {},
+      teamARow,
+      el('div', { class: 'vs-divider' }, 'VS'),
+      teamBRow
+    ),
+    actionRow
+  );
+
+  // Initial winner/loser styling based on current scores (live, even before lock)
+  updateMatchVisualState(card, m);
+
+  return card;
+}
+
+function hasBothScores(m) {
+  return m.scoreA != null && m.scoreB != null
+    && String(m.scoreA) !== '' && String(m.scoreB) !== '';
+}
+function canLock(m) {
+  return hasBothScores(m) && Number(m.scoreA) !== Number(m.scoreB);
+}
+
+// Toggle winner/loser classes without re-rendering the whole schedule.
+// This lets the user see the winning side pop as they type, without
+// losing focus on the score input.
+function updateMatchVisualState(card, m) {
+  const both = hasBothScores(m);
+  const aWin = both && Number(m.scoreA) > Number(m.scoreB);
+  const bWin = both && Number(m.scoreB) > Number(m.scoreA);
+  const rows = card.querySelectorAll('.team-row');
+  if (rows[0]) {
+    rows[0].classList.toggle('winner-row', aWin);
+    rows[0].classList.toggle('loser-row', bWin);
+  }
+  if (rows[1]) {
+    rows[1].classList.toggle('winner-row', bWin);
+    rows[1].classList.toggle('loser-row', aWin);
+  }
+  // Update score-display winner styling (only matters when locked, but cheap)
+  const scoreDisplays = card.querySelectorAll('.score-display');
+  if (scoreDisplays[0]) scoreDisplays[0].classList.toggle('winner', aWin);
+  if (scoreDisplays[1]) scoreDisplays[1].classList.toggle('winner', bWin);
+  // Update lock button enabled state + head pill text
+  const lockBtn = card.querySelector('.confirm-btn');
+  if (lockBtn) lockBtn.disabled = !canLock(m);
+  const pill = card.querySelector('.match-head .pill');
+  if (pill && !m.complete) {
+    pill.textContent = both ? 'Ready to lock' : 'Open';
+    pill.classList.remove('pill-done');
+    pill.classList.add('pill-warn');
+  }
+}
+
+// Lock a match with kinesthetic feedback (pulse + checkmark burst).
+function lockMatch(m, cardEl) {
+  if (!canLock(m)) return;
+  cardEl.classList.add('just-locked');
+  const burst = el('div', { class: 'lock-burst' });
+  cardEl.appendChild(burst);
+  // After the animation peaks, commit the lock and re-render.
+  setTimeout(() => {
+    m.complete = true;
+    saveState();
+    renderSchedule();
+  }, 480);
+}
+
+function checkComplete(m) {
+  // Legacy hook — kept for any callers; current matchCard wires updates directly.
+}
+
+/* -------- STANDINGS -------- */
+function renderStandings() {
+  const root = $('#screen-standings');
+  root.innerHTML = '';
+  const ev = currentEvent();
+  if (!ev || !ev.rounds?.length) {
+    root.appendChild(emptyState('No standings yet', 'Standings appear once the schedule starts.', () => go('home'), 'Home'));
+    return;
+  }
+  const fmt = FORMATS[ev.format];
+  const standings = fmt.standings(ev);
+  const playerName = (id) => ev.players.find(p => p.id === id)?.name || '?';
+  const allDone = ev.rounds.flatMap(r => r.matches).every(m => m.complete);
+
+  const stack = el('div', { class: 'stack-lg' });
+
+  stack.appendChild(el('div', {},
+    el('div', { class: 'h1' }, 'Standings'),
+    el('div', { class: 'muted' }, allDone ? 'Final results' : 'Live')
+  ));
+
+  // Champion banner if event complete.
+  // If a Final/Championship match exists and is locked, the champion is the winning team.
+  // Otherwise (RR-only event), the champion is seed 1.
+  if (allDone && standings.length) {
+    const finalRound = ev.rounds.find(r => r.label === 'Final' || r.label === 'Championship');
+    let champNameLine;
+    let champLabel = 'Pot Champion';
+    if (finalRound && finalRound.matches[0] && finalRound.matches[0].complete) {
+      const m = finalRound.matches[0];
+      const winningIds = Number(m.scoreA) > Number(m.scoreB) ? m.teamA : m.teamB;
+      champNameLine = winningIds.map(playerName).join(' & ');
+      champLabel = 'Playoff Champions';
+    } else {
+      champNameLine = playerName(standings[0].id);
+    }
+    stack.appendChild(el('div', { class: 'champion' },
+      el('div', { class: 'label' }, champLabel),
+      el('div', { class: 'name' }, champNameLine),
+      ev.pot ? el('div', { class: 'pot' }, '$' + ev.pot + (ev.sponsor ? ' · ' + ev.sponsor : '')) : null
+    ));
+  }
+
+  // If pool format, group by pool
+  if (ev.format === 'pool_playoff') {
+    const byPool = {};
+    standings.forEach(s => { byPool[s.pool] = byPool[s.pool] || []; byPool[s.pool].push(s); });
+    Object.keys(byPool).sort().forEach(pool => {
+      stack.appendChild(el('div', { class: 'section-title' }, 'Pool ' + pool));
+      stack.appendChild(standingsTable(byPool[pool], playerName));
+    });
+  } else {
+    stack.appendChild(standingsTable(standings, playerName));
+  }
+
+  // Complete event button
+  if (allDone) {
+    stack.appendChild(el('button', { class: 'btn btn-block', onclick: completeEvent }, 'Archive event & start fresh'));
+  }
+
+  root.appendChild(stack);
+}
+
+function standingsTable(rows, nameFn) {
+  const table = el('table', { class: 'table' },
+    el('thead', {}, el('tr', {},
+      el('th', {}, '#'),
+      el('th', {}, 'Player'),
+      el('th', { class: 'num' }, 'W'),
+      el('th', { class: 'num' }, 'L'),
+      el('th', { class: 'num' }, 'PF'),
+      el('th', { class: 'num' }, 'PA'),
+      el('th', { class: 'num' }, '+/-')
+    )),
+    el('tbody', {}, ...rows.map(r =>
+      el('tr', { class: r.seed === 1 ? 'seed-1' : '' },
+        el('td', { class: 'seed-cell' }, String(r.seed)),
+        el('td', { class: 'player-cell' }, nameFn(r.id)),
+        el('td', { class: 'num' }, String(r.wins)),
+        el('td', { class: 'num' }, String(r.losses)),
+        el('td', { class: 'num' }, String(r.pointsFor)),
+        el('td', { class: 'num' }, String(r.pointsAgainst)),
+        el('td', { class: 'num' }, (r.diff > 0 ? '+' : '') + r.diff)
+      )
+    ))
+  );
+  return table;
+}
+
+function completeEvent() {
+  const ev = currentEvent();
+  if (!ev) return;
+  ev.completedAt = new Date().toISOString();
+  if (!state.history.includes(ev.id)) state.history.push(ev.id);
+  state.current = null;
+  state.draft = null;
+  saveState();
+  toast('Event archived');
+  go('home');
+}
+
+/* -------- HISTORY -------- */
+function renderHistory() {
+  const root = $('#screen-history');
+  root.innerHTML = '';
+  const stack = el('div', { class: 'stack-lg' });
+  stack.appendChild(el('div', {},
+    el('div', { class: 'h1' }, 'History'),
+    el('div', { class: 'muted' }, `${state.history.length} archived events`)
+  ));
+
+  if (!state.history.length) {
+    stack.appendChild(emptyState('Nothing here yet', 'Completed events show up here.', null));
+    root.appendChild(stack);
+    return;
+  }
+
+  // Season Leaderboard rollup
+  const allStats = {};
+  state.history.forEach(eid => {
+    const e = state.events[eid];
+    if (!e) return;
+    const fmt = FORMATS[e.format];
+    if (!fmt) return;
+    const standings = fmt.standings(e);
+    standings.forEach(s => {
+      const name = e.players.find(p => p.id === s.id)?.name || '?';
+      if (!allStats[name]) allStats[name] = { name, sessions: 0, wins: 0, losses: 0, pointsFor: 0, pointsAgainst: 0, podiums: 0 };
+      const t = allStats[name];
+      t.sessions += 1;
+      t.wins += s.wins;
+      t.losses += s.losses;
+      t.pointsFor += s.pointsFor;
+      t.pointsAgainst += s.pointsAgainst;
+      if (s.seed === 1) t.podiums += 1;
+    });
+  });
+  const seasonRanked = Object.values(allStats)
+    .map(s => ({ ...s, diff: s.pointsFor - s.pointsAgainst }))
+    .sort((a, b) => (b.podiums - a.podiums) || (b.wins - a.wins) || (b.diff - a.diff));
+
+  if (seasonRanked.length) {
+    stack.appendChild(el('div', { class: 'section-title' }, 'Season Leaderboard'));
+    stack.appendChild((() => {
+      const table = el('table', { class: 'table' },
+        el('thead', {}, el('tr', {},
+          el('th', {}, '#'),
+          el('th', {}, 'Player'),
+          el('th', { class: 'num' }, 'Pdm'),
+          el('th', { class: 'num' }, 'Sess'),
+          el('th', { class: 'num' }, 'W'),
+          el('th', { class: 'num' }, 'L'),
+          el('th', { class: 'num' }, '+/-')
+        )),
+        el('tbody', {}, ...seasonRanked.map((r, i) =>
+          el('tr', { class: i === 0 ? 'seed-1' : '' },
+            el('td', { class: 'seed-cell' }, String(i + 1)),
+            el('td', { class: 'player-cell' }, r.name),
+            el('td', { class: 'num' }, String(r.podiums)),
+            el('td', { class: 'num' }, String(r.sessions)),
+            el('td', { class: 'num' }, String(r.wins)),
+            el('td', { class: 'num' }, String(r.losses)),
+            el('td', { class: 'num' }, (r.diff > 0 ? '+' : '') + r.diff)
+          )
+        ))
+      );
+      return table;
+    })());
+  }
+
+  stack.appendChild(el('div', { class: 'section-title' }, 'Events'));
+  state.history.slice().reverse().forEach(id => {
+    const e = state.events[id];
+    if (!e) return;
+    const standings = FORMATS[e.format]?.standings(e) || [];
+    const champ = standings[0];
+    const champName = champ ? e.players.find(p => p.id === champ.id)?.name : '—';
+    stack.appendChild(el('div', { class: 'card' },
+      el('div', { class: 'row-between' },
+        el('div', {},
+          el('div', { class: 'who' }, e.name),
+          el('div', { class: 'when' }, `${fmtDate(e.completedAt || e.createdAt)} · ${FORMATS[e.format]?.name} · ${e.players.length}p`)
+        ),
+        el('div', { class: 'pill pill-lime' }, '★ ' + champName)
+      )
+    ));
+  });
+
+  root.appendChild(stack);
+}
+
+/* -------- SETTINGS -------- */
+function renderSettings() {
+  const root = $('#screen-settings');
+  root.innerHTML = '';
+  const stack = el('div', { class: 'stack-lg' });
+
+  stack.appendChild(el('div', {},
+    el('div', { class: 'h1' }, 'Settings'),
+    el('div', { class: 'muted' }, 'Backup, restore, reset.')
+  ));
+
+  stack.appendChild(el('div', { class: 'card' },
+    el('div', { class: 'section-title', style: 'margin: 0 0 8px' }, 'Backup'),
+    el('div', { class: 'muted', style: 'margin-bottom: 12px' }, 'Export everything (current event, history, players) as a JSON file. Drop it back to import on any device.'),
+    el('div', { class: 'row', style: 'gap: 8px;' },
+      el('button', { class: 'btn', style: 'flex:1', onclick: exportJson }, 'Export JSON'),
+      el('button', { class: 'btn', style: 'flex:1', onclick: importPicker }, 'Import JSON')
+    )
+  ));
+
+  if (state.history.length || state.current) {
+    stack.appendChild(el('div', { class: 'card' },
+      el('div', { class: 'section-title', style: 'margin: 0 0 8px' }, 'Known Players'),
+      el('div', { class: 'muted', style: 'margin-bottom: 8px' }, `${state.knownPlayers.length} names cached for quick add.`),
+      el('div', { style: 'display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;' },
+        ...state.knownPlayers.map(n => el('span', { class: 'pill' }, n))
+      ),
+      el('button', { class: 'btn btn-sm btn-ghost', onclick: () => {
+        if (confirm('Clear all cached player names?')) { state.knownPlayers = []; saveState(); renderSettings(); }
+      }}, 'Clear cached names')
+    ));
+  }
+
+  stack.appendChild(el('div', { class: 'card' },
+    el('div', { class: 'section-title', style: 'margin: 0 0 8px; color: var(--danger)' }, 'Danger zone'),
+    el('button', { class: 'btn btn-danger btn-block', onclick: () => {
+      if (confirm('This will delete the current event and history on this device. Backup first if unsure.')) {
+        state = defaultState(); saveState(); go('home');
+      }
+    }}, 'Reset everything')
+  ));
+
+  stack.appendChild(el('div', { class: 'faint', style: 'text-align: center; margin-top: 24px;' },
+    'Popup v0.1 · Link & Dink'
+  ));
+
+  root.appendChild(stack);
+}
+
+function exportJson() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = el('a', { href: url, download: `linkanddink-popup-${Date.now()}.json` });
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  toast('Exported');
+}
+
+function importPicker() {
+  const input = el('input', { type: 'file', accept: 'application/json' });
+  input.onchange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      if (!parsed || typeof parsed !== 'object' || !parsed.version) {
+        toast('Not a valid Popup backup');
+        return;
+      }
+      if (!confirm('Replace ALL current data with this backup?')) return;
+      state = { ...defaultState(), ...parsed };
+      saveState();
+      toast('Imported');
+      go('home');
+    } catch (err) {
+      console.error(err);
+      toast('Could not read file');
+    }
+  };
+  input.click();
+}
+
+/* -------- Wire up bottom nav + boot -------- */
+$$('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (btn.disabled) return;
+    go(btn.dataset.screen);
+  });
+});
+
+// Boot to last screen (or home)
+go(state.ui.lastScreen || 'home');
+
+</script>
+</body>
+</html>
