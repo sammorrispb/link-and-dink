@@ -277,6 +277,9 @@ export interface Database {
           round: number;
           court: number;
           stage: string;
+          pool: string | null;
+          team_a_id: string | null;
+          team_b_id: string | null;
           team_a_player1_id: string | null;
           team_a_player2_id: string | null;
           team_b_player1_id: string | null;
@@ -288,6 +291,8 @@ export interface Database {
           confirmed_at: string | null;
           disputed_at: string | null;
           resolved_by_account_id: string | null;
+          locked_at: string | null;
+          locked_by_account_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -297,6 +302,9 @@ export interface Database {
           round: number;
           court: number;
           stage: string;
+          pool?: string | null;
+          team_a_id?: string | null;
+          team_b_id?: string | null;
           team_a_player1_id?: string | null;
           team_a_player2_id?: string | null;
           team_b_player1_id?: string | null;
@@ -308,6 +316,8 @@ export interface Database {
           confirmed_at?: string | null;
           disputed_at?: string | null;
           resolved_by_account_id?: string | null;
+          locked_at?: string | null;
+          locked_by_account_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -317,6 +327,9 @@ export interface Database {
           round?: number;
           court?: number;
           stage?: string;
+          pool?: string | null;
+          team_a_id?: string | null;
+          team_b_id?: string | null;
           team_a_player1_id?: string | null;
           team_a_player2_id?: string | null;
           team_b_player1_id?: string | null;
@@ -328,8 +341,91 @@ export interface Database {
           confirmed_at?: string | null;
           disputed_at?: string | null;
           resolved_by_account_id?: string | null;
+          locked_at?: string | null;
+          locked_by_account_id?: string | null;
           created_at?: string;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      teams: {
+        Row: {
+          id: string;
+          event_id: string;
+          player1_id: string;
+          player2_id: string;
+          label: string | null;
+          seed: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          player1_id: string;
+          player2_id: string;
+          label?: string | null;
+          seed?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          event_id?: string;
+          player1_id?: string;
+          player2_id?: string;
+          label?: string | null;
+          seed?: number | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      round_byes: {
+        Row: {
+          id: string;
+          event_id: string;
+          round: number;
+          player_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          round: number;
+          player_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          event_id?: string;
+          round?: number;
+          player_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      playoff_pairings: {
+        Row: {
+          event_id: string;
+          rule: string;
+          qualifier_count: number;
+          teams_json: Json;
+          locked_at: string;
+          locked_by_account_id: string | null;
+        };
+        Insert: {
+          event_id: string;
+          rule: string;
+          qualifier_count: number;
+          teams_json: Json;
+          locked_at?: string;
+          locked_by_account_id?: string | null;
+        };
+        Update: {
+          event_id?: string;
+          rule?: string;
+          qualifier_count?: number;
+          teams_json?: Json;
+          locked_at?: string;
+          locked_by_account_id?: string | null;
         };
         Relationships: [];
       };
@@ -341,6 +437,10 @@ export interface Database {
         Returns: string;
       };
       account_in_event: {
+        Args: { p_event_id: string };
+        Returns: boolean;
+      };
+      account_is_organizer: {
         Args: { p_event_id: string };
         Returns: boolean;
       };
@@ -357,3 +457,6 @@ export type PlayerAccountLinkRow = Database["public"]["Tables"]["player_account_
 export type EventRow = Database["public"]["Tables"]["events"]["Row"];
 export type RsvpRow = Database["public"]["Tables"]["rsvps"]["Row"];
 export type MatchRow = Database["public"]["Tables"]["matches"]["Row"];
+export type TeamRow = Database["public"]["Tables"]["teams"]["Row"];
+export type RoundByeRow = Database["public"]["Tables"]["round_byes"]["Row"];
+export type PlayoffPairingRow = Database["public"]["Tables"]["playoff_pairings"]["Row"];
