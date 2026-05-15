@@ -75,7 +75,11 @@ export async function GET(request: NextRequest, context: { params: Promise<{ slu
     headers: {
       ...CORS_HEADERS,
       "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": "public, s-maxage=10, stale-while-revalidate=30",
+      // Never cache: the response body varies by the X-Roster-Token header,
+      // and Vercel's CDN doesn't key on request headers by default — caching
+      // would let a contact-info response leak to a subsequent no-token call.
+      // The endpoint is one DB round-trip; serving fresh every time is cheap.
+      "Cache-Control": "no-store",
     },
   });
 }
