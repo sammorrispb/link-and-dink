@@ -9,6 +9,7 @@ import type {
 } from "./domain";
 import { createServiceClient } from "./supabase/service";
 import type { EventRow, MatchRow, PlayerRow, RsvpRow } from "./supabase/types";
+import { formatForPlayerCount } from "./tournament";
 
 // ---------------------------------------------------------------------------
 // Mappers: snake_case DB rows -> camelCase domain objects.
@@ -303,6 +304,10 @@ export async function createEvent(input: CreateEventInput): Promise<PotEvent> {
   const sb = createServiceClient();
   const date = input.startsAt.slice(0, 10);
   const base = `${slugify(input.title)}-${date}`;
+  const format = formatForPlayerCount(input.maxPlayers);
+  if (!format) {
+    throw new Error(`Unsupported player count: ${input.maxPlayers} (must be 4–18)`);
+  }
 
   for (let attempt = 0; attempt < 10; attempt++) {
     const candidate = attempt === 0 ? base : `${base}-${attempt + 1}`;
@@ -316,7 +321,7 @@ export async function createEvent(input: CreateEventInput): Promise<PotEvent> {
         venue_name: input.venueName,
         venue_address: input.venueAddress,
         bracket: input.bracket,
-        format: "rr_se_8p",
+        format,
         entry_fee_cents: input.entryFeeCents,
         pot_amount_cents: input.potAmountCents,
         pot_funder: input.potFunder,
