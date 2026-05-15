@@ -97,6 +97,11 @@ export interface Database {
         Row: {
           id: string;
           display_name: string;
+          first_name: string | null;
+          last_name: string | null;
+          phone: string | null;
+          venmo_handle: string | null;
+          email: string | null;
           dupr_id: string | null;
           dupr_rating: number | null;
           dupr_reliability: number | null;
@@ -112,6 +117,11 @@ export interface Database {
         Insert: {
           id?: string;
           display_name: string;
+          first_name?: string | null;
+          last_name?: string | null;
+          phone?: string | null;
+          venmo_handle?: string | null;
+          email?: string | null;
           dupr_id?: string | null;
           dupr_rating?: number | null;
           dupr_reliability?: number | null;
@@ -127,6 +137,11 @@ export interface Database {
         Update: {
           id?: string;
           display_name?: string;
+          first_name?: string | null;
+          last_name?: string | null;
+          phone?: string | null;
+          venmo_handle?: string | null;
+          email?: string | null;
           dupr_id?: string | null;
           dupr_rating?: number | null;
           dupr_reliability?: number | null;
@@ -181,8 +196,10 @@ export interface Database {
           format: string;
           entry_fee_cents: number;
           pot_amount_cents: number;
+          pot_funder: string | null;
           pot_split: string;
           max_players: number;
+          game_length: number | null;
           organizer_account_id: string;
           status: string;
           created_at: string;
@@ -200,8 +217,10 @@ export interface Database {
           format?: string;
           entry_fee_cents?: number;
           pot_amount_cents: number;
+          pot_funder?: string | null;
           pot_split?: string;
           max_players?: number;
+          game_length?: number | null;
           organizer_account_id: string;
           status?: string;
           created_at?: string;
@@ -219,8 +238,10 @@ export interface Database {
           format?: string;
           entry_fee_cents?: number;
           pot_amount_cents?: number;
+          pot_funder?: string | null;
           pot_split?: string;
           max_players?: number;
+          game_length?: number | null;
           organizer_account_id?: string;
           status?: string;
           created_at?: string;
@@ -233,7 +254,7 @@ export interface Database {
           id: string;
           event_id: string;
           player_id: string;
-          account_id: string;
+          account_id: string | null;
           payment_status: string;
           payment_intent_id: string | null;
           paid_at: string | null;
@@ -246,7 +267,7 @@ export interface Database {
           id?: string;
           event_id: string;
           player_id: string;
-          account_id: string;
+          account_id?: string | null;
           payment_status?: string;
           payment_intent_id?: string | null;
           paid_at?: string | null;
@@ -259,7 +280,7 @@ export interface Database {
           id?: string;
           event_id?: string;
           player_id?: string;
-          account_id?: string;
+          account_id?: string | null;
           payment_status?: string;
           payment_intent_id?: string | null;
           paid_at?: string | null;
