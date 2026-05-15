@@ -1,5 +1,5 @@
 // AUTO-GENERATED from docs/tournament/artifacts/tournament_format_rundowns_4-18.xlsx
-// To regenerate: python3 /tmp/extract_schedules.py > /tmp/schedules.json && ./scripts/embed_schedules.sh
+// To regenerate: pnpm run generate:schedules
 // DO NOT EDIT BY HAND.
 
 export type RPSchedule = {
