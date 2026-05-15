@@ -11,6 +11,7 @@
     "format": "biome format --write .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "generate:schedules": "python3 scripts/extract_schedules.py docs/tournament/artifacts/tournament_format_rundowns_4-18.xlsx > src/lib/tournament/schedules.ts && pnpm exec biome check --write src/lib/tournament/schedules.ts",
     "types": "supabase gen types typescript --local > src/lib/supabase/types.ts",
     "types:linked": "supabase gen types typescript --linked > src/lib/supabase/types.ts",
     "db:start": "supabase start",

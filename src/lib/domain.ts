@@ -2,6 +2,8 @@
 // these are what the rest of the app consumes. Mapping happens at the data-access
 // boundary in src/lib/events.ts.
 
+import { FORMATS as TOURNAMENT_FORMATS } from "./tournament";
+
 export type EventStatus = "open" | "full" | "in_progress" | "completed" | "canceled";
 
 export interface PotEvent {
@@ -52,7 +54,8 @@ export interface UpcomingEventSummary {
   spotsLeft: number;
 }
 
-/** Human-readable label for the locked v1 format. */
+/** Human-readable label sourced from the tournament format registry. */
 export function formatLabel(format: string): string {
-  return format === "rr_se_8p" ? "RR → Single Elim" : format;
+  const mod = TOURNAMENT_FORMATS[format as keyof typeof TOURNAMENT_FORMATS];
+  return mod?.name ?? format;
 }
