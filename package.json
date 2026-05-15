@@ -9,6 +9,8 @@
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "types": "supabase gen types typescript --local > src/lib/supabase/types.ts",
     "types:linked": "supabase gen types typescript --linked > src/lib/supabase/types.ts",
     "db:start": "supabase start",
@@ -31,6 +33,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.6"
   }
 }

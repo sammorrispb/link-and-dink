@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Pot Night · 8-Player Rotating Partner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f6f7f3;
+    --paper: #ffffff;
+    --ink: #14241c;
+    --ink-soft: #4a5b53;
+    --ink-faint: #7d8c84;
+    --line: #e0e6df;
+    --line-strong: #c9d2c7;
+    --spruce: #0a4d36;
+    --spruce-dark: #073525;
+    --spruce-light: #0f6648;
+    --lime: #c5e63b;
+    --lime-soft: #f0f7c8;
+    --lime-edge: #a7c92a;
+    --warn: #e8a23a;
+    --danger: #cf5a44;
+    --radius: 14px;
+    --radius-sm: 10px;
+    --radius-lg: 20px;
+    --shadow: 0 6px 22px rgba(7, 53, 37, 0.07);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Outfit', -apple-system, system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 20px 18px 80px; }
+
+  /* === Header === */
+  .hero {
+    background: linear-gradient(135deg, var(--spruce-dark), var(--spruce));
+    color: #eaf4ee;
+    border-radius: var(--radius-lg);
+    padding: 22px 26px;
+    box-shadow: var(--shadow);
+    display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap;
+  }
+  .hero-left { display: flex; align-items: center; gap: 14px; }
+  .mark {
+    width: 46px; height: 46px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--spruce-light), var(--spruce));
+    border: 1px solid rgba(197, 230, 59, 0.4);
+    display: grid; place-items: center;
+    font-weight: 800; font-size: 18px; color: var(--lime);
+  }
+  .hero h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: 0.2px; }
+  .hero .sub { color: rgba(234, 244, 238, 0.72); font-size: 13px; font-weight: 500; margin-top: 2px; }
+  .hero-stats { display: flex; gap: 12px; flex-wrap: wrap; }
+  .stat {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(197, 230, 59, 0.18);
+    padding: 9px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 500;
+  }
+  .stat strong { color: var(--lime); font-weight: 700; margin-right: 6px; }
+
+  /* === Section cards === */
+  section.card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 20px 22px;
+    margin-top: 18px;
+    box-shadow: var(--shadow);
+  }
+  section.card h2 {
+    margin: 0 0 14px;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.4px;
+    color: var(--spruce);
+    display: flex; align-items: center; gap: 10px;
+  }
+  section.card h2 .pip { width: 6px; height: 6px; border-radius: 99px; background: var(--lime); }
+
+  /* === Players strip === */
+  .players {
+    display: grid; gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+  .pl {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    background: #fbfcf8;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  .pl .av {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 13px; font-weight: 700;
+    color: #fff;
+  }
+  .pl .nm { font-weight: 600; font-size: 14px; }
+  .pl .hd { font-size: 11px; color: var(--ink-faint); }
+
+  /* === Standings === */
+  table.standings { width: 100%; border-collapse: collapse; }
+  .standings th, .standings td {
+    text-align: left; padding: 10px 8px;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px;
+  }
+  .standings th {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--ink-faint); font-weight: 600;
+  }
+  .standings td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .standings tr.gold td:first-child::before {
+    content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--lime); margin-right: 8px; box-shadow: 0 0 0 3px var(--lime-soft);
+  }
+  .standings tr.gold { background: var(--lime-soft); }
+  .standings tr.gold td { font-weight: 700; }
+  .pos {
+    display: inline-grid; place-items: center;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--spruce); color: var(--lime);
+    font-size: 12px; font-weight: 700;
+    margin-right: 8px;
+  }
+  .diff-pos { color: var(--spruce); font-weight: 700; }
+  .diff-neg { color: var(--danger); font-weight: 600; }
+  .standings td .nmcell {
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .standings td .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+
+  /* === Rounds === */
+  .round {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    overflow: hidden;
+    background: var(--paper);
+  }
+  .round-hd {
+    background: var(--spruce-dark); color: #eaf4ee;
+    padding: 12px 18px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .round-hd .rn {
+    font-size: 28px; font-weight: 800;
+    color: var(--lime); letter-spacing: -0.5px;
+  }
+  .round-hd .partners {
+    font-size: 12px; color: rgba(234, 244, 238, 0.7); font-weight: 500;
+  }
+  .courts {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+  @media (max-width: 720px) { .courts { grid-template-columns: 1fr; } }
+  .court {
+    padding: 16px 18px;
+    border-right: 1px solid var(--line);
+  }
+  .court:last-child { border-right: none; }
+  @media (max-width: 720px) {
+    .court { border-right: none; border-bottom: 1px solid var(--line); }
+    .court:last-child { border-bottom: none; }
+  }
+  .court-num {
+    display: inline-flex; align-items: baseline; gap: 6px;
+    padding: 4px 10px;
+    background: var(--lime-soft);
+    border: 1px solid var(--lime-edge);
+    border-radius: 999px;
+    font-size: 11px; color: var(--spruce-dark);
+    text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .court-num strong { font-size: 17px; font-weight: 800; }
+
+  .match {
+    display: grid; gap: 6px;
+  }
+  .team {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    background: #fbfcf8;
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-sm);
+    transition: all 140ms ease;
+  }
+  .team.winner {
+    background: linear-gradient(90deg, var(--lime-soft), #fff);
+    border-color: var(--lime-edge);
+    box-shadow: 0 0 0 2px var(--lime-soft);
+  }
+  .team.loser {
+    opacity: 0.78;
+    background: #fafbf8;
+  }
+  .team .names {
+    flex: 1; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .team .ptag {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-weight: 600; font-size: 14px;
+  }
+  .team .ptag .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+  .team .plus { color: var(--ink-faint); font-weight: 400; }
+  .team .score {
+    width: 56px; padding: 6px 8px;
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    text-align: center;
+    font-family: inherit; font-size: 18px; font-weight: 700;
+    color: var(--ink);
+    background: #fff;
+    font-variant-numeric: tabular-nums;
+  }
+  .team.winner .score {
+    background: var(--spruce);
+    color: var(--lime);
+    border-color: var(--spruce);
+  }
+  .team .score:focus {
+    outline: 2px solid var(--spruce);
+    outline-offset: 1px;
+  }
+  .vs {
+    text-align: center; font-size: 11px; color: var(--ink-faint);
+    font-weight: 600; letter-spacing: 2px; padding: 2px 0;
+  }
+  .win-badge {
+    display: none;
+    font-size: 11px; font-weight: 800; padding: 2px 8px;
+    background: var(--spruce); color: var(--lime);
+    border-radius: 99px; letter-spacing: 1px;
+  }
+  .team.winner .win-badge { display: inline-block; }
+
+  /* === Controls === */
+  .controls {
+    display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px;
+  }
+  .btn {
+    border: 1px solid var(--line-strong);
+    background: var(--paper);
+    color: var(--ink);
+    padding: 9px 16px;
+    border-radius: 999px;
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    transition: all 140ms ease;
+  }
+  .btn:hover { border-color: var(--spruce); color: var(--spruce); }
+  .btn.primary {
+    background: var(--spruce); border-color: var(--spruce); color: var(--lime);
+  }
+  .btn.primary:hover { background: var(--spruce-dark); color: var(--lime); }
+
+  /* === Partner matrix === */
+  .matrix {
+    overflow-x: auto;
+  }
+  table.mx { border-collapse: collapse; width: 100%; min-width: 560px; }
+  .mx th, .mx td {
+    border: 1px solid var(--line);
+    padding: 8px; text-align: center; font-size: 13px;
+  }
+  .mx th {
+    background: #f0f3ec; font-size: 11px; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--ink-faint); font-weight: 700;
+  }
+  .mx td.self { background: #ebeee8; color: var(--ink-faint); }
+  .mx td.pair {
+    background: var(--lime-soft); color: var(--spruce-dark); font-weight: 700;
+  }
+  .mx .pname { background: #f0f3ec; font-weight: 600; text-align: left; }
+
+  .note {
+    font-size: 13px; color: var(--ink-soft); margin-top: 10px; line-height: 1.55;
+  }
+  .note strong { color: var(--spruce); }
+
+  /* mobile compaction */
+  @media (max-width: 560px) {
+    .hero h1 { font-size: 18px; }
+    .team .ptag { font-size: 13px; }
+    .team .score { width: 48px; font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-left">
+      <div class="mark">L&amp;D</div>
+      <div>
+        <h1>Pot Night · 8-Player Rotating Partner</h1>
+        <div class="sub">Full sample tournament · 7 rounds · 2 courts · every player partners every other once</div>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><strong>8</strong>players</div>
+      <div class="stat"><strong>7</strong>rounds</div>
+      <div class="stat"><strong>14</strong>matches</div>
+      <div class="stat"><strong>0</strong>byes</div>
+    </div>
+  </div>
+
+  <!-- PLAYERS -->
+  <section class="card">
+    <h2><span class="pip"></span>Players</h2>
+    <div id="players" class="players"></div>
+  </section>
+
+  <!-- STANDINGS -->
+  <section class="card">
+    <h2><span class="pip"></span>Live Standings</h2>
+    <table class="standings" id="standings">
+      <thead>
+        <tr>
+          <th>Pos</th>
+          <th>Player</th>
+          <th class="num">W</th>
+          <th class="num">L</th>
+          <th class="num">PF</th>
+          <th class="num">PA</th>
+          <th class="num">Diff</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div class="note">
+      Sorted by wins, then by point differential. The leaderboard recalculates the instant you change any score &mdash; per your event-software UX rule that derived values should never be gated behind a Confirm button.
+    </div>
+  </section>
+
+  <!-- SCHEDULE -->
+  <section class="card">
+    <h2><span class="pip"></span>Round-by-Round Schedule</h2>
+    <div class="controls" style="margin-bottom: 16px;">
+      <button class="btn primary" id="reset-btn">Reset to sample scores</button>
+      <button class="btn" id="clear-btn">Clear all scores</button>
+      <button class="btn" id="games-to">Games to: <span id="gt">11</span></button>
+    </div>
+    <div id="schedule"></div>
+  </section>
+
+  <!-- PARTNER MATRIX -->
+  <section class="card">
+    <h2><span class="pip"></span>Partner Pairing Matrix</h2>
+    <div class="matrix">
+      <table class="mx" id="matrix"></table>
+    </div>
+    <div class="note">
+      Each cell shows <strong>which round</strong> two players partnered. A complete 8-player Howell guarantees every off-diagonal cell is filled exactly once &mdash; you can read this matrix to verify the schedule is fair.
+    </div>
+  </section>
+
+</div>
+
+<script>
+  // ========= Players (Excel slot order: A3..A10) =========
+  // P1 was Joe, P2 Khai, P3 Barak, P4 Wornden, P5 James, P6 Jason, P7 Josh, P8 Fang
+  // Mapped to fun sample names below — same slot indices = identical schedule as your 8 Player Final Final.xlsx.
+  const PLAYERS = [
+    { id: 1, name: 'Dink Sinatra',    initial: 'DS', color: '#0a4d36', tag: 'P1' },
+    { id: 2, name: 'Spike Rivera',    initial: 'SR', color: '#1b6e8c', tag: 'P2' },
+    { id: 3, name: 'Lobster Larry',   initial: 'LL', color: '#cf5a44', tag: 'P3' },
+    { id: 4, name: 'Banger Bianca',   initial: 'BB', color: '#8a3fa6', tag: 'P4' },
+    { id: 5, name: 'Pat the Pickle',  initial: 'PP', color: '#5d8a2c', tag: 'P5' },
+    { id: 6, name: 'Vinny Volley',    initial: 'VV', color: '#c47b1c', tag: 'P6' },
+    { id: 7, name: 'Net Reaper Nate', initial: 'NN', color: '#3a4a5c', tag: 'P7' },
+    { id: 8, name: 'Smash Maya',      initial: 'SM', color: '#a8418a', tag: 'P8' },
+  ];
+  const byId = id => PLAYERS.find(p => p.id === id);
+
+  // ========= Schedule (reconstructed from 8 Player Final Final.xlsx, slot indices preserved) =========
+  // Format: [round, court, [teamA pair ids], [teamB pair ids], teamA_score, teamB_score]
+  const SCHEDULE = [
+    // R1
+    [1, 1, [1,5], [7,8], 11,  8],
+    [1, 2, [2,3], [6,4], 11,  7],
+    // R2
+    [2, 1, [4,7], [6,8], 11,  9],
+    [2, 2, [1,2], [3,5], 11,  6],
+    // R3
+    [3, 1, [3,4], [5,7], 11,  8],
+    [3, 2, [2,6], [1,8], 11,  9],
+    // R4
+    [4, 1, [1,6], [4,5], 11,  5],
+    [4, 2, [3,7], [2,8],  8, 11],
+    // R5
+    [5, 1, [5,6], [7,2], 11,  6],
+    [5, 2, [1,4], [3,8], 11,  4],
+    // R6
+    [6, 1, [4,8], [2,5],  6, 11],
+    [6, 2, [6,7], [1,3],  9, 11],
+    // R7
+    [7, 1, [1,7], [2,4], 11,  8],
+    [7, 2, [3,6], [5,8], 11,  7],
+  ];
+
+  let gamesTo = 11;
+
+  // ========= Render players =========
+  function renderPlayers() {
+    const el = document.getElementById('players');
+    el.innerHTML = PLAYERS.map(p => `
+      <div class="pl">
+        <div class="av" style="background:${p.color}">${p.initial}</div>
+        <div>
+          <div class="nm">${p.name}</div>
+          <div class="hd">${p.tag}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ========= Render schedule =========
+  function teamLabel(ids) {
+    const a = byId(ids[0]), b = byId(ids[1]);
+    return `
+      <span class="ptag"><span class="dot" style="background:${a.color}"></span>${a.name}</span>
+      <span class="plus">+</span>
+      <span class="ptag"><span class="dot" style="background:${b.color}"></span>${b.name}</span>
+    `;
+  }
+
+  function renderSchedule() {
+    const sched = document.getElementById('schedule');
+    let html = '';
+    for (let r = 1; r <= 7; r++) {
+      const matches = SCHEDULE.filter(m => m[0] === r);
+      // Collect the 8 players' partners this round for the header subtitle
+      const pairs = matches.flatMap(m => [m[2], m[3]])
+        .map(t => `${byId(t[0]).tag}+${byId(t[1]).tag}`).join(' · ');
+      html += `<div class="round">
+        <div class="round-hd">
+          <div><div style="font-size:11px; color:rgba(234,244,238,0.6); text-transform:uppercase; letter-spacing:1.5px; font-weight:600;">Round</div><div class="rn">${r}</div></div>
+          <div class="partners">${pairs}</div>
+        </div>
+        <div class="courts">`;
+      matches.forEach(m => {
+        const idx = SCHEDULE.indexOf(m);
+        html += `<div class="court">
+          <div class="court-num">Court <strong>${m[1]}</strong></div>
+          <div class="match" data-mi="${idx}">
+            <div class="team" data-side="A">
+              <div class="names">${teamLabel(m[2])}</div>
+              <span class="win-badge">W</span>
+              <input type="number" class="score" min="0" max="99" data-side="A" value="${m[4]}" />
+            </div>
+            <div class="vs">VS</div>
+            <div class="team" data-side="B">
+              <div class="names">${teamLabel(m[3])}</div>
+              <span class="win-badge">W</span>
+              <input type="number" class="score" min="0" max="99" data-side="B" value="${m[5]}" />
+            </div>
+          </div>
+        </div>`;
+      });
+      html += `</div></div>`;
+    }
+    sched.innerHTML = html;
+
+    // Hook up score inputs
+    sched.querySelectorAll('input.score').forEach(inp => {
+      inp.addEventListener('input', onScoreChange);
+    });
+    paintWinners();
+  }
+
+  function onScoreChange(e) {
+    const match = e.target.closest('.match');
+    const mi = parseInt(match.dataset.mi, 10);
+    const side = e.target.dataset.side;
+    const v = parseInt(e.target.value, 10);
+    SCHEDULE[mi][side === 'A' ? 4 : 5] = Number.isFinite(v) ? v : 0;
+    paintWinners();
+    recalcStandings();
+  }
+
+  function paintWinners() {
+    document.querySelectorAll('.match').forEach(m => {
+      const mi = parseInt(m.dataset.mi, 10);
+      const a = SCHEDULE[mi][4], b = SCHEDULE[mi][5];
+      const tA = m.querySelector('[data-side="A"].team');
+      const tB = m.querySelector('[data-side="B"].team');
+      tA.classList.remove('winner','loser');
+      tB.classList.remove('winner','loser');
+      if (a === b || a == null || b == null) return;
+      if (a > b) { tA.classList.add('winner'); tB.classList.add('loser'); }
+      else       { tB.classList.add('winner'); tA.classList.add('loser'); }
+    });
+  }
+
+  // ========= Standings =========
+  function recalcStandings() {
+    const stats = {};
+    PLAYERS.forEach(p => { stats[p.id] = { w:0, l:0, pf:0, pa:0 }; });
+    SCHEDULE.forEach(m => {
+      const [r, c, A, B, sA, sB] = m;
+      if (sA === sB) return;
+      const aWin = sA > sB;
+      A.forEach(id => {
+        stats[id].pf += sA; stats[id].pa += sB;
+        if (aWin) stats[id].w++; else stats[id].l++;
+      });
+      B.forEach(id => {
+        stats[id].pf += sB; stats[id].pa += sA;
+        if (!aWin) stats[id].w++; else stats[id].l++;
+      });
+    });
+
+    const rows = PLAYERS.map(p => ({ p, ...stats[p.id], diff: stats[p.id].pf - stats[p.id].pa }))
+      .sort((a, b) => b.w - a.w || b.diff - a.diff || b.pf - a.pf);
+
+    const tbody = document.querySelector('#standings tbody');
+    tbody.innerHTML = rows.map((row, i) => {
+      const cls = i === 0 ? 'gold' : '';
+      const diffStr = row.diff > 0 ? `<span class="diff-pos">+${row.diff}</span>` :
+                      row.diff < 0 ? `<span class="diff-neg">${row.diff}</span>` :
+                      `<span>0</span>`;
+      return `<tr class="${cls}">
+        <td><span class="pos">${i+1}</span></td>
+        <td><span class="nmcell"><span class="dot" style="background:${row.p.color}"></span><strong>${row.p.name}</strong></span></td>
+        <td class="num"><strong>${row.w}</strong></td>
+        <td class="num">${row.l}</td>
+        <td class="num">${row.pf}</td>
+        <td class="num">${row.pa}</td>
+        <td class="num">${diffStr}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ========= Partner matrix =========
+  function renderMatrix() {
+    // Build pair -> round map
+    const pair = (a,b) => a < b ? `${a}-${b}` : `${b}-${a}`;
+    const map = {};
+    SCHEDULE.forEach(m => {
+      const r = m[0];
+      [m[2], m[3]].forEach(t => { map[pair(t[0], t[1])] = r; });
+    });
+
+    const tbl = document.getElementById('matrix');
+    let html = '<thead><tr><th></th>' + PLAYERS.map(p =>
+      `<th><span style="display:inline-flex;align-items:center;gap:5px;"><span class="dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.color}"></span>${p.tag}</span></th>`
+    ).join('') + '</tr></thead><tbody>';
+    PLAYERS.forEach(rowP => {
+      html += `<tr><td class="pname"><span class="dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${rowP.color};margin-right:6px;"></span>${rowP.name}</td>`;
+      PLAYERS.forEach(colP => {
+        if (rowP.id === colP.id) html += `<td class="self">—</td>`;
+        else {
+          const r = map[pair(rowP.id, colP.id)];
+          html += r ? `<td class="pair">R${r}</td>` : `<td>·</td>`;
+        }
+      });
+      html += '</tr>';
+    });
+    html += '</tbody>';
+    tbl.innerHTML = html;
+  }
+
+  // ========= Controls =========
+  const ORIGINAL = SCHEDULE.map(m => [m[4], m[5]]);
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    SCHEDULE.forEach((m, i) => { m[4] = ORIGINAL[i][0]; m[5] = ORIGINAL[i][1]; });
+    renderSchedule(); recalcStandings();
+  });
+  document.getElementById('clear-btn').addEventListener('click', () => {
+    SCHEDULE.forEach(m => { m[4] = 0; m[5] = 0; });
+    renderSchedule(); recalcStandings();
+  });
+  document.getElementById('games-to').addEventListener('click', () => {
+    gamesTo = gamesTo === 11 ? 15 : gamesTo === 15 ? 21 : 11;
+    document.getElementById('gt').textContent = gamesTo;
+  });
+
+  // ========= Boot =========
+  renderPlayers();
+  renderSchedule();
+  recalcStandings();
+  renderMatrix();
+</script>
+</body>
+</html>
