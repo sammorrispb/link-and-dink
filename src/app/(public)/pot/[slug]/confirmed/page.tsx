@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { Countdown } from "@/components/pot/Countdown";
 import { MobileShell } from "@/components/pot/MobileShell";
@@ -8,7 +9,6 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EntryPotTiles } from "@/components/ui/EntryPotTiles";
 import { Pill } from "@/components/ui/Pill";
-import { ensureAccount, getLinkedPlayers } from "@/lib/account";
 import { formatLabel } from "@/lib/domain";
 import { getEventWithRoster } from "@/lib/events";
 import {
@@ -18,7 +18,7 @@ import {
   initials,
   weekdayName,
 } from "@/lib/format";
-import { createClient } from "@/lib/supabase/server";
+import { rsvpCookieName, verifyRsvpCookie } from "@/lib/tokens";
 import { cancelRsvpAction } from "../rsvp/actions";
 
 export const dynamic = "force-dynamic";
@@ -32,33 +32,23 @@ const BRING = [
 
 interface PageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ claimed?: string }>;
 }
 
-export default async function ConfirmedPage({ params }: PageProps) {
+export default async function ConfirmedPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
+  const { claimed } = await searchParams;
+
   const data = await getEventWithRoster(slug);
   if (!data) notFound();
   const { event, roster } = data;
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect(`/pot/${slug}/rsvp`);
+  const cookieStore = await cookies();
+  const payload = verifyRsvpCookie(cookieStore.get(rsvpCookieName)?.value);
+  if (!payload || payload.eventId !== event.id) redirect(`/pot/${slug}/rsvp`);
 
-  const account = await ensureAccount(supabase);
-  const linkedPlayers = await getLinkedPlayers(supabase, account.id);
-  const myPlayerIds = new Set(linkedPlayers.map((p) => p.id));
-
-  // Must have a live RSVP to see the confirmation page.
-  const { data: myRsvp } = await supabase
-    .from("rsvps")
-    .select("payment_status, status")
-    .eq("event_id", event.id)
-    .eq("account_id", account.id)
-    .neq("status", "canceled")
-    .maybeSingle();
-  if (!myRsvp) redirect(`/pot/${slug}/rsvp`);
+  const myEntry = roster.find((r) => r.playerId === payload.playerId);
+  if (!myEntry) redirect(`/pot/${slug}/rsvp`);
 
   const courts = Math.max(1, Math.ceil(event.maxPlayers / 4));
   const spotsOpen = Math.max(0, event.maxPlayers - roster.length);
@@ -69,6 +59,7 @@ export default async function ConfirmedPage({ params }: PageProps) {
     location: `${event.venueName}${event.venueAddress ? `, ${event.venueAddress}` : ""}`,
     details: "The Pickleball Pot Popup by Link & Dink — RR → Single Elim. Winner takes the pot.",
   });
+  const claimHref = `/claim?event=${encodeURIComponent(slug)}`;
 
   return (
     <MobileShell>
@@ -84,7 +75,14 @@ export default async function ConfirmedPage({ params }: PageProps) {
           We&apos;ll text you 30 min before.
         </p>
 
-        {/* Your Match Night */}
+        {claimed ? (
+          <Card variant="feature" className="mt-3">
+            <p className="text-[13px] text-text">
+              Profile saved — future RSVPs will pre-fill your info.
+            </p>
+          </Card>
+        ) : null}
+
         <Card variant="feature" className="mt-4">
           <div className="text-[13px] font-bold uppercase tracking-[0.08em] text-lime">
             Your Match Night
@@ -104,31 +102,29 @@ export default async function ConfirmedPage({ params }: PageProps) {
             ))}
           </div>
           <p className="mt-1.5 text-[12px] leading-relaxed text-text-muted">
-            You&apos;ll partner with everyone in your pod across 3 round-robin games, then top 2
-            from each pod advance to semis &amp; final.
+            You&apos;ll partner with everyone in your pod across the round robin, then top finishers
+            advance to semis &amp; final.
           </p>
         </Card>
 
-        {/* Entry / Pot */}
         <div className="mt-1.5">
           <EntryPotTiles
             entryLabel="Your entry"
             entryValue={formatCents(event.entryFeeCents)}
-            entrySuffix={myRsvp.payment_status}
+            entrySuffix={myEntry.paymentStatus}
             potLabel="Pot · winner take all"
             potValue={formatCents(event.potAmountCents)}
-            potSuffix={`(${formatCents(Math.round(event.potAmountCents / 2))} each)`}
+            potSuffix={event.potFunder ? `funded by ${event.potFunder}` : undefined}
             valueClassName="text-[20px]"
           />
         </div>
 
-        {/* Who's playing */}
         <h2 className="mt-[18px] text-[13px] font-bold uppercase tracking-[0.08em] text-text-muted">
           Who&apos;s playing
         </h2>
         <Card className="mt-2 px-3.5 py-1.5">
           {roster.map((entry, i) => {
-            const isYou = myPlayerIds.has(entry.playerId);
+            const isYou = entry.playerId === payload.playerId;
             return (
               <div
                 key={entry.rsvpId}
@@ -141,12 +137,11 @@ export default async function ConfirmedPage({ params }: PageProps) {
                   <div>
                     <div className="text-[14px] font-extrabold text-text">{entry.displayName}</div>
                     <div className="text-[11px] text-text-dim">
-                      {entry.duprRating ? `DUPR ${entry.duprRating.toFixed(2)}` : "Unrated"}
-                      {isYou ? " · You" : ""}
+                      {entry.status === "waitlist" ? "Waitlist" : isYou ? "You" : "In"}
                     </div>
                   </div>
                 </div>
-                <Pill variant="muted">In</Pill>
+                <Pill variant="muted">{entry.status === "waitlist" ? "WL" : "In"}</Pill>
               </div>
             );
           })}
@@ -162,7 +157,6 @@ export default async function ConfirmedPage({ params }: PageProps) {
           ) : null}
         </Card>
 
-        {/* What to bring */}
         <h2 className="mt-[18px] text-[13px] font-bold uppercase tracking-[0.08em] text-text-muted">
           What to bring
         </h2>
@@ -174,7 +168,22 @@ export default async function ConfirmedPage({ params }: PageProps) {
           </div>
         </Card>
 
-        {/* Actions */}
+        {!claimed ? (
+          <Card className="mt-[18px]">
+            <div className="text-[11px] font-bold uppercase tracking-[0.08em] text-text-dim">
+              Save your profile (optional)
+            </div>
+            <p className="mt-1 text-[13px] text-text-muted">
+              Add an email to your player so the next RSVP is one tap.
+            </p>
+            <div className="mt-2">
+              <Button href={claimHref} variant="secondary" size="compact">
+                Save profile
+              </Button>
+            </div>
+          </Card>
+        ) : null}
+
         <div className="mt-4 grid grid-cols-2 gap-2">
           <Button
             href={calendarUrl}
@@ -191,7 +200,6 @@ export default async function ConfirmedPage({ params }: PageProps) {
           </span>
         </div>
         <div className="mt-2">
-          {/* Live check-in opens at the venue — the live event screen is Phase 2. */}
           <Button href={`/pot/${slug}`}>I&apos;m here — Check in</Button>
         </div>
         <form action={cancelRsvpAction} className="mt-2">

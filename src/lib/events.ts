@@ -26,8 +26,10 @@ function mapEvent(row: EventRow): PotEvent {
     format: row.format,
     entryFeeCents: row.entry_fee_cents,
     potAmountCents: row.pot_amount_cents,
+    potFunder: row.pot_funder,
     potSplit: row.pot_split,
     maxPlayers: row.max_players,
+    gameLength: row.game_length,
     organizerAccountId: row.organizer_account_id,
     status: row.status as EventStatus,
   };
@@ -236,6 +238,178 @@ export async function getUpcomingEvents(opts?: {
     event,
     spotsLeft: Math.max(0, event.maxPlayers - (counts.get(event.id) ?? 0)),
   }));
+}
+
+// ---------------------------------------------------------------------------
+// Organizer reads + writes.
+// ---------------------------------------------------------------------------
+
+/** Events organized by an account, soonest first. */
+export async function getOrganizedEvents(
+  organizerAccountId: string,
+): Promise<UpcomingEventSummary[]> {
+  const sb = createServiceClient();
+  const { data, error } = await sb
+    .from("events")
+    .select("*")
+    .eq("organizer_account_id", organizerAccountId)
+    .order("starts_at", { ascending: true });
+  if (error) throw error;
+
+  const events = (data ?? []).map(mapEvent);
+  const counts = await getConfirmedCounts(
+    sb,
+    events.map((e) => e.id),
+  );
+  return events.map((event) => ({
+    event,
+    spotsLeft: Math.max(0, event.maxPlayers - (counts.get(event.id) ?? 0)),
+  }));
+}
+
+export interface CreateEventInput {
+  title: string;
+  startsAt: string;
+  endsAt: string | null;
+  venueName: string;
+  venueAddress: string | null;
+  bracket: string;
+  potAmountCents: number;
+  entryFeeCents: number;
+  potFunder: string | null;
+  maxPlayers: number;
+  gameLength: number;
+  organizerAccountId: string;
+}
+
+const SLUG_MAX = 60;
+function slugify(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, SLUG_MAX);
+}
+
+const POSTGRES_UNIQUE_VIOLATION = "23505";
+
+/**
+ * Insert a new event with a slug derived from title + start date. Retries on
+ * unique-violation by suffixing `-2`, `-3`, … Returns the created row.
+ */
+export async function createEvent(input: CreateEventInput): Promise<PotEvent> {
+  const sb = createServiceClient();
+  const date = input.startsAt.slice(0, 10);
+  const base = `${slugify(input.title)}-${date}`;
+
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const candidate = attempt === 0 ? base : `${base}-${attempt + 1}`;
+    const { data, error } = await sb
+      .from("events")
+      .insert({
+        slug: candidate,
+        title: input.title,
+        starts_at: input.startsAt,
+        ends_at: input.endsAt,
+        venue_name: input.venueName,
+        venue_address: input.venueAddress,
+        bracket: input.bracket,
+        format: "rr_se_8p",
+        entry_fee_cents: input.entryFeeCents,
+        pot_amount_cents: input.potAmountCents,
+        pot_funder: input.potFunder,
+        pot_split: "winner_take_all",
+        max_players: input.maxPlayers,
+        game_length: input.gameLength,
+        organizer_account_id: input.organizerAccountId,
+        status: "open",
+      })
+      .select("*")
+      .single();
+    if (!error && data) return mapEvent(data);
+    if (error?.code !== POSTGRES_UNIQUE_VIOLATION) throw error;
+  }
+  throw new Error("Could not generate a unique event slug after 10 attempts");
+}
+
+export interface RosterExportRow {
+  rsvpId: string;
+  playerId: string;
+  displayName: string;
+  firstName: string | null;
+  lastName: string | null;
+  phone: string | null;
+  venmoHandle: string | null;
+  email: string | null;
+  duprId: string | null;
+  duprRating: number | null;
+  rsvpStatus: string;
+  paymentStatus: string;
+  position: number | null;
+  rsvpCreatedAt: string;
+}
+
+/**
+ * Full per-RSVP roster for export — confirmed first, then waitlist, optionally
+ * canceled. Joins players. Used by /organize/[slug] + roster.csv + roster.json.
+ */
+export async function getRosterForExport(
+  slug: string,
+  opts?: { includeCanceled?: boolean },
+): Promise<{ event: PotEvent; rows: RosterExportRow[] } | null> {
+  const sb = createServiceClient();
+  const { data: eventRow, error: eventErr } = await sb
+    .from("events")
+    .select("*")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (eventErr) throw eventErr;
+  if (!eventRow) return null;
+
+  const statusList = opts?.includeCanceled
+    ? ["confirmed", "waitlist", "canceled"]
+    : ["confirmed", "waitlist"];
+
+  const { data: rsvpRows, error: rsvpErr } = await sb
+    .from("rsvps")
+    .select("*")
+    .eq("event_id", eventRow.id)
+    .in("status", statusList)
+    .order("status", { ascending: true }) // confirmed < waitlist alphabetically
+    .order("position", { ascending: true, nullsFirst: false });
+  if (rsvpErr) throw rsvpErr;
+
+  const rsvps = rsvpRows ?? [];
+  if (rsvps.length === 0) return { event: mapEvent(eventRow), rows: [] };
+
+  const players = await loadPlayers(
+    sb,
+    rsvps.map((r) => r.player_id),
+  );
+
+  const rows: RosterExportRow[] = rsvps.map((r) => {
+    const p = players.get(r.player_id);
+    return {
+      rsvpId: r.id,
+      playerId: r.player_id,
+      displayName: p?.display_name ?? "Player",
+      firstName: p?.first_name ?? null,
+      lastName: p?.last_name ?? null,
+      phone: p?.phone ?? null,
+      venmoHandle: p?.venmo_handle ?? null,
+      email: p?.email ?? null,
+      duprId: p?.dupr_id ?? null,
+      duprRating: p?.dupr_rating ?? null,
+      rsvpStatus: r.status,
+      paymentStatus: r.payment_status,
+      position: r.position,
+      rsvpCreatedAt: r.created_at,
+    };
+  });
+
+  return { event: mapEvent(eventRow), rows };
 }
 
 /** Slug of the soonest open event — used to redirect the bare landing route. */

@@ -18,8 +18,10 @@ export interface PotEvent {
   format: string;
   entryFeeCents: number;
   potAmountCents: number;
+  potFunder: string | null;
   potSplit: string;
   maxPlayers: number;
+  gameLength: number | null;
   organizerAccountId: string;
   status: EventStatus;
 }
