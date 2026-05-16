@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/Card";
 import { EntryPotTiles } from "@/components/ui/EntryPotTiles";
 import { Pill } from "@/components/ui/Pill";
 import type { PotEvent, RosterEntry } from "@/lib/domain";
-import { formatLabel } from "@/lib/domain";
+import { ballColorFor, formatLabel } from "@/lib/domain";
 import { firstName, formatCents, formatEventDateTime, initials } from "@/lib/format";
 
 export function FeaturedEvent({
@@ -21,6 +21,9 @@ export function FeaturedEvent({
   const preview = roster.slice(0, 4);
   const names = preview.map((r) => firstName(r.displayName));
   const bracket = event.bracket.replace("-", "–");
+  const levelLabel = event.ageBracket
+    ? `${event.ageBracket} · ${ballColorFor(event.ageBracket)}`
+    : `${bracket} DUPR`;
 
   return (
     <Card variant="feature" className="mb-4">
@@ -40,7 +43,7 @@ export function FeaturedEvent({
         <strong className="text-text">{event.venueName}</strong>
         {event.venueAddress ? ` · ${event.venueAddress}` : null}
         <br />
-        Level: {bracket} DUPR · Format: {formatLabel(event.format)}
+        Level: {levelLabel} · Format: {formatLabel(event.format)}
       </p>
 
       <div className="my-3.5">

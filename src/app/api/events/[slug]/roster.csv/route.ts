@@ -15,13 +15,18 @@ const COLUMNS = [
   "email",
   "dupr_id",
   "dupr_rating",
+  "child_first_name",
+  "child_last_name",
+  "child_birthdate",
+  "guardian_consent",
+  "guardian_consent_at",
   "rsvp_status",
   "payment_status",
   "position",
   "rsvp_created_at",
 ] as const;
 
-function csvCell(value: string | number | null | undefined): string {
+function csvCell(value: string | number | boolean | null | undefined): string {
   if (value === null || value === undefined) return "";
   const s = String(value);
   if (s.includes(",") || s.includes('"') || s.includes("\n")) {
@@ -56,6 +61,11 @@ export async function GET(request: NextRequest, context: { params: Promise<{ slu
         r.email,
         r.duprId,
         r.duprRating,
+        r.childFirstName,
+        r.childLastName,
+        r.childBirthdate,
+        r.guardianConsent,
+        r.guardianConsentAt,
         r.rsvpStatus,
         r.paymentStatus,
         r.position,
