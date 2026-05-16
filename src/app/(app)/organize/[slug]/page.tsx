@@ -4,7 +4,7 @@ import { TopBar } from "@/components/pot/TopBar";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { CopyButton } from "@/components/ui/CopyButton";
-import { formatLabel } from "@/lib/domain";
+import { ballColorFor, formatLabel } from "@/lib/domain";
 import { getRosterForExport } from "@/lib/events";
 import { formatCents, formatEventDateTime } from "@/lib/format";
 import { requireOrganizer } from "@/lib/organizer";
@@ -73,7 +73,10 @@ export default async function OrganizerEventDashboard({ params }: PageProps) {
                 {formatLabel(event.format)}
               </div>
               <div className="text-[11px] text-text-dim">
-                Games to {event.gameLength ?? 11} · {event.bracket}
+                Games to {event.gameLength ?? 11} ·{" "}
+                {event.ageBracket
+                  ? `${event.ageBracket} · ${ballColorFor(event.ageBracket)}`
+                  : event.bracket}
               </div>
             </div>
             <div>

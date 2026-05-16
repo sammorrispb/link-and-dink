@@ -200,6 +200,8 @@ export interface Database {
           pot_split: string;
           max_players: number;
           game_length: number | null;
+          age_bracket: string | null;
+          waiver_url: string | null;
           organizer_account_id: string;
           status: string;
           created_at: string;
@@ -221,6 +223,8 @@ export interface Database {
           pot_split?: string;
           max_players?: number;
           game_length?: number | null;
+          age_bracket?: string | null;
+          waiver_url?: string | null;
           organizer_account_id: string;
           status?: string;
           created_at?: string;
@@ -242,6 +246,8 @@ export interface Database {
           pot_split?: string;
           max_players?: number;
           game_length?: number | null;
+          age_bracket?: string | null;
+          waiver_url?: string | null;
           organizer_account_id?: string;
           status?: string;
           created_at?: string;
@@ -261,6 +267,11 @@ export interface Database {
           status: string;
           position: number | null;
           checked_in_at: string | null;
+          child_first_name: string | null;
+          child_last_name: string | null;
+          child_birthdate: string | null;
+          guardian_consent: boolean | null;
+          guardian_consent_at: string | null;
           created_at: string;
         };
         Insert: {
@@ -274,6 +285,11 @@ export interface Database {
           status?: string;
           position?: number | null;
           checked_in_at?: string | null;
+          child_first_name?: string | null;
+          child_last_name?: string | null;
+          child_birthdate?: string | null;
+          guardian_consent?: boolean | null;
+          guardian_consent_at?: string | null;
           created_at?: string;
         };
         Update: {
@@ -287,6 +303,11 @@ export interface Database {
           status?: string;
           position?: number | null;
           checked_in_at?: string | null;
+          child_first_name?: string | null;
+          child_last_name?: string | null;
+          child_birthdate?: string | null;
+          guardian_consent?: boolean | null;
+          guardian_consent_at?: string | null;
           created_at?: string;
         };
         Relationships: [];

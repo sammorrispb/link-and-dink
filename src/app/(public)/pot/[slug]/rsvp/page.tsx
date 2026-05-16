@@ -5,7 +5,7 @@ import { TopBar } from "@/components/pot/TopBar";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EntryPotTiles } from "@/components/ui/EntryPotTiles";
-import { formatLabel } from "@/lib/domain";
+import { ballColorFor, formatLabel, maxAgeFor } from "@/lib/domain";
 import { getEventWithRoster } from "@/lib/events";
 import { formatCents, formatEventDateTime } from "@/lib/format";
 import { rsvpCookieName, verifyRsvpCookie } from "@/lib/tokens";
@@ -33,6 +33,10 @@ export default async function RsvpPage({ params }: PageProps) {
 
   const isFull = confirmedCount >= event.maxPlayers;
   const bracket = event.bracket.replace("-", "–");
+  const isYouth = event.ageBracket !== null;
+  const youthSuffix = event.ageBracket
+    ? ` · ${event.ageBracket} · ${ballColorFor(event.ageBracket)}`
+    : "";
 
   return (
     <MobileShell>
@@ -53,8 +57,8 @@ export default async function RsvpPage({ params }: PageProps) {
             <strong className="text-text">{event.venueName}</strong>
             {event.venueAddress ? ` · ${event.venueAddress}` : null}
             <br />
-            Level: {bracket} · Format: {formatLabel(event.format)} · Games to{" "}
-            {event.gameLength ?? 11}
+            Level: {bracket}
+            {youthSuffix} · Format: {formatLabel(event.format)} · Games to {event.gameLength ?? 11}
           </p>
           <div className="mt-3.5">
             <EntryPotTiles
@@ -80,7 +84,60 @@ export default async function RsvpPage({ params }: PageProps) {
         <form action={rsvpAction} className="flex flex-col gap-3">
           <input type="hidden" name="slug" value={slug} />
 
+          {isYouth && event.ageBracket ? (
+            <Card>
+              <p className="mb-1 text-[12px] font-bold uppercase tracking-[0.06em] text-lime">
+                Player ({event.ageBracket} — under {maxAgeFor(event.ageBracket)})
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelClass} htmlFor="child_first_name">
+                    First name
+                  </label>
+                  <input
+                    id="child_first_name"
+                    name="child_first_name"
+                    required
+                    autoComplete="off"
+                    placeholder="Tommy"
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass} htmlFor="child_last_name">
+                    Last name
+                  </label>
+                  <input
+                    id="child_last_name"
+                    name="child_last_name"
+                    required
+                    autoComplete="off"
+                    placeholder="Johnson"
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+              <label className={labelClass} htmlFor="child_birthdate">
+                Date of birth
+              </label>
+              <input
+                id="child_birthdate"
+                name="child_birthdate"
+                type="date"
+                required
+                autoComplete="bday"
+                className={inputClass}
+              />
+            </Card>
+          ) : null}
+
           <Card>
+            {isYouth ? (
+              <p className="mb-1 text-[12px] font-bold uppercase tracking-[0.06em] text-text-dim">
+                Parent / guardian
+              </p>
+            ) : null}
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={labelClass} htmlFor="first_name">
@@ -111,7 +168,7 @@ export default async function RsvpPage({ params }: PageProps) {
             </div>
 
             <label className={labelClass} htmlFor="phone">
-              Phone <span className="text-text-dim">(US)</span>
+              {isYouth ? "Parent phone" : "Phone"} <span className="text-text-dim">(US)</span>
             </label>
             <input
               id="phone"
@@ -125,7 +182,8 @@ export default async function RsvpPage({ params }: PageProps) {
             />
 
             <label className={labelClass} htmlFor="venmo_handle">
-              Venmo handle <span className="text-text-dim">(needed in case you win)</span>
+              {isYouth ? "Parent Venmo handle" : "Venmo handle"}{" "}
+              <span className="text-text-dim">(needed in case you win)</span>
             </label>
             <input
               id="venmo_handle"
@@ -148,6 +206,35 @@ export default async function RsvpPage({ params }: PageProps) {
               className={inputClass}
             />
           </Card>
+
+          {isYouth ? (
+            <Card>
+              <label className="flex items-start gap-2 text-[13px] text-text">
+                <input
+                  type="checkbox"
+                  name="guardian_consent"
+                  required={Boolean(event.waiverUrl)}
+                  className="mt-1 h-4 w-4 accent-lime"
+                />
+                <span>
+                  I&apos;m the parent/guardian and I agree to the{" "}
+                  {event.waiverUrl ? (
+                    <a
+                      href={event.waiverUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline decoration-lime decoration-2 underline-offset-2"
+                    >
+                      event waiver
+                    </a>
+                  ) : (
+                    "event terms"
+                  )}
+                  .
+                </span>
+              </label>
+            </Card>
+          ) : null}
 
           <Button type="submit">{isFull ? "Join the waitlist" : "I'm in"}</Button>
           <p className="text-center text-[11px] text-text-dim">

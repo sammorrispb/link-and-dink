@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import type { AgeBracket } from "@/lib/domain";
 import { createEvent } from "@/lib/events";
 import { requireOrganizer } from "@/lib/organizer";
 import { createClient } from "@/lib/supabase/server";
@@ -14,6 +15,10 @@ function asDollarsToCents(raw: string): number {
   const n = Number.parseFloat(raw);
   if (!Number.isFinite(n) || n < 0) return 0;
   return Math.round(n * 100);
+}
+
+function asAgeBracket(raw: string): AgeBracket | null {
+  return raw === "11U" || raw === "14U" ? raw : null;
 }
 
 export async function createEventAction(formData: FormData): Promise<void> {
@@ -30,6 +35,8 @@ export async function createEventAction(formData: FormData): Promise<void> {
   const potFunder = String(formData.get("pot_funder") ?? "").trim() || null;
   const maxPlayers = asInt(String(formData.get("max_players") ?? "8"), 8);
   const gameLength = asInt(String(formData.get("game_length") ?? "11"), 11);
+  const ageBracket = asAgeBracket(String(formData.get("age_bracket") ?? ""));
+  const waiverUrl = String(formData.get("waiver_url") ?? "").trim() || null;
 
   if (!title) throw new Error("Title is required");
   if (!startsAtLocal) throw new Error("Start time is required");
@@ -52,6 +59,8 @@ export async function createEventAction(formData: FormData): Promise<void> {
     potFunder,
     maxPlayers,
     gameLength,
+    ageBracket,
+    waiverUrl,
     organizerAccountId: account.id,
   });
 

@@ -1,5 +1,6 @@
 import "server-only";
 import type {
+  AgeBracket,
   EventStatus,
   EventWithRoster,
   PastResult,
@@ -7,6 +8,7 @@ import type {
   RosterEntry,
   UpcomingEventSummary,
 } from "./domain";
+import { composeDisplayName } from "./players";
 import { createServiceClient } from "./supabase/service";
 import type { EventRow, MatchRow, PlayerRow, RsvpRow } from "./supabase/types";
 import { formatForPlayerCount } from "./tournament";
@@ -31,6 +33,8 @@ function mapEvent(row: EventRow): PotEvent {
     potSplit: row.pot_split,
     maxPlayers: row.max_players,
     gameLength: row.game_length,
+    ageBracket: row.age_bracket as AgeBracket | null,
+    waiverUrl: row.waiver_url,
     organizerAccountId: row.organizer_account_id,
     status: row.status as EventStatus,
   };
@@ -96,10 +100,14 @@ async function loadRoster(
 
   return rsvps.map((r) => {
     const player = players.get(r.player_id);
+    const childName =
+      r.child_first_name || r.child_last_name
+        ? composeDisplayName(r.child_first_name, r.child_last_name)
+        : null;
     return {
       rsvpId: r.id,
       playerId: r.player_id,
-      displayName: player?.display_name ?? "Player",
+      displayName: childName ?? player?.display_name ?? "Player",
       duprRating: player?.dupr_rating ?? null,
       position: r.position,
       paymentStatus: r.payment_status,
@@ -280,6 +288,8 @@ export interface CreateEventInput {
   potFunder: string | null;
   maxPlayers: number;
   gameLength: number;
+  ageBracket: AgeBracket | null;
+  waiverUrl: string | null;
   organizerAccountId: string;
 }
 
@@ -328,6 +338,8 @@ export async function createEvent(input: CreateEventInput): Promise<PotEvent> {
         pot_split: "winner_take_all",
         max_players: input.maxPlayers,
         game_length: input.gameLength,
+        age_bracket: input.ageBracket,
+        waiver_url: input.waiverUrl,
         organizer_account_id: input.organizerAccountId,
         status: "open",
       })
@@ -350,6 +362,11 @@ export interface RosterExportRow {
   email: string | null;
   duprId: string | null;
   duprRating: number | null;
+  childFirstName: string | null;
+  childLastName: string | null;
+  childBirthdate: string | null;
+  guardianConsent: boolean | null;
+  guardianConsentAt: string | null;
   rsvpStatus: string;
   paymentStatus: string;
   position: number | null;
@@ -396,10 +413,14 @@ export async function getRosterForExport(
 
   const rows: RosterExportRow[] = rsvps.map((r) => {
     const p = players.get(r.player_id);
+    const childName =
+      r.child_first_name || r.child_last_name
+        ? composeDisplayName(r.child_first_name, r.child_last_name)
+        : null;
     return {
       rsvpId: r.id,
       playerId: r.player_id,
-      displayName: p?.display_name ?? "Player",
+      displayName: childName ?? p?.display_name ?? "Player",
       firstName: p?.first_name ?? null,
       lastName: p?.last_name ?? null,
       phone: p?.phone ?? null,
@@ -407,6 +428,11 @@ export async function getRosterForExport(
       email: p?.email ?? null,
       duprId: p?.dupr_id ?? null,
       duprRating: p?.dupr_rating ?? null,
+      childFirstName: r.child_first_name,
+      childLastName: r.child_last_name,
+      childBirthdate: r.child_birthdate,
+      guardianConsent: r.guardian_consent,
+      guardianConsentAt: r.guardian_consent_at,
       rsvpStatus: r.status,
       paymentStatus: r.payment_status,
       position: r.position,

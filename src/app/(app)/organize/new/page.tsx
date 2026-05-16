@@ -75,6 +75,26 @@ export default async function NewEventPage() {
           </Card>
 
           <Card>
+            <label className={labelClass} htmlFor="age_bracket">
+              Age bracket
+            </label>
+            <select id="age_bracket" name="age_bracket" defaultValue="" className={inputClass}>
+              <option value="">Adult / open</option>
+              <option value="11U">11U · Yellow ball</option>
+              <option value="14U">14U · Green ball</option>
+            </select>
+
+            <label className={labelClass} htmlFor="waiver_url">
+              Waiver link <span className="text-text-dim">(youth events — optional)</span>
+            </label>
+            <input
+              id="waiver_url"
+              name="waiver_url"
+              type="url"
+              placeholder="https://…"
+              className={inputClass}
+            />
+
             <label className={labelClass} htmlFor="bracket">
               Skill bracket
             </label>
