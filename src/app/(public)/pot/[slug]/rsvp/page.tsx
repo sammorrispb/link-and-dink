@@ -75,6 +75,12 @@ export default async function RsvpPage({ params }: PageProps) {
               {spotsLeft} {spotsLeft === 1 ? "spot" : "spots"} left.
             </p>
           )}
+          <p className="mt-3 text-[12px] text-text-dim">
+            <strong className="text-text">
+              {formatCents(event.entryFeeCents)} Venmo at the door
+            </strong>{" "}
+            — no charge tonight, just RSVP.
+          </p>
         </Card>
 
         <form action={rsvpAction} className="flex flex-col gap-3">

@@ -23,7 +23,7 @@ import { cancelRsvpAction } from "../rsvp/actions";
 
 export const dynamic = "force-dynamic";
 
-const BRING = [
+const STATIC_BRING = [
   "🏓 Paddle (loaners available)",
   "💧 Water bottle",
   "👟 Indoor court shoes",
@@ -162,7 +162,8 @@ export default async function ConfirmedPage({ params, searchParams }: PageProps)
         </h2>
         <Card className="mt-2 px-4 py-3">
           <div className="text-[13px] leading-[1.7] text-text">
-            {BRING.map((item) => (
+            <div>💵 {formatCents(event.entryFeeCents)} Venmo for entry (paid at the door)</div>
+            {STATIC_BRING.map((item) => (
               <div key={item}>{item}</div>
             ))}
           </div>
