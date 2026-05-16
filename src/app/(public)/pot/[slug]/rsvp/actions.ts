@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ageOnDate, maxAgeFor } from "@/lib/domain";
 import { getEventWithRoster } from "@/lib/events";
+import { ingestToOpenBrain } from "@/lib/open-brain-ingest";
 import { normalizePhone, normalizeVenmoHandle, upsertPlayerByPhone } from "@/lib/players";
 import { createServiceClient } from "@/lib/supabase/service";
 import { rsvpCookieName, signRsvpCookie, verifyRsvpCookie } from "@/lib/tokens";
@@ -91,6 +92,33 @@ export async function rsvpAction(formData: FormData): Promise<void> {
     });
     if (insErr && insErr.code !== POSTGRES_UNIQUE_VIOLATION) throw insErr;
   }
+
+  // Open Brain ingest — push the tournament player to the master CRM.
+  // Tournament RSVPs are the collection engine for the Playability Graph
+  // (partnership/reliability/standing/cadence signal). Helper accepts phone
+  // as the dedup key when email is absent (common for P3 — email is optional).
+  // AWAIT so the Vercel lambda doesn't tear down the fetch before it
+  // completes; helper has its own 5s timeout + log-on-failure so OB downtime
+  // never blocks the RSVP redirect. Child PII (name, birthdate) is
+  // intentionally excluded — only the guardian is the OB lead.
+  await ingestToOpenBrain({
+    email: email ?? undefined,
+    name: `${firstName} ${lastName}`,
+    phone: phone.e164,
+    business: "ld",
+    source: "ld_p3_rsvp",
+    interest: "Pot Night Tournament",
+    metadata: {
+      event_slug: slug,
+      event_id: event.id,
+      rsvp_status: status,
+      position,
+      venmo_handle: venmoHandle,
+      is_youth: !!event.ageBracket,
+      age_bracket: event.ageBracket ?? null,
+      phone_only: !email,
+    },
+  });
 
   await setRsvpCookie({ playerId: player.id, eventId: event.id });
   redirect(`/pot/${slug}/confirmed`);
